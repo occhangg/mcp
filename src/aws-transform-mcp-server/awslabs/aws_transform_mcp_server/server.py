@@ -30,7 +30,6 @@ from awslabs.aws_transform_mcp_server.config_store import (
 )
 from awslabs.aws_transform_mcp_server.consts import (
     FES_SIGV4_PROBE_TIMEOUT_SECONDS,
-    SIGV4_FES_ENABLED,
 )
 from awslabs.aws_transform_mcp_server.fes_client import call_fes_direct_sigv4
 from awslabs.aws_transform_mcp_server.tools.adaptive_poll import AdaptivePollHandler
@@ -124,7 +123,7 @@ def create_server() -> FastMCP:
     return FastMCP(
         'awslabs.aws-transform-mcp-server',
         instructions=INSTRUCTIONS,
-        dependencies=['boto3', 'botocore', 'pydantic', 'loguru', 'httpx'],
+        dependencies=['boto3', 'botocore[crt]', 'pydantic', 'loguru', 'httpx'],
     )
 
 
@@ -163,12 +162,13 @@ async def _probe_sigv4_fes() -> None:
     Attempts a ListWorkspaces call with SigV4 signing. If it succeeds,
     FES tools can work without explicit cookie/SSO configure.
     """
-    if not SIGV4_FES_ENABLED:
+    session = AwsHelper.create_session()
+    try:
+        credentials = session.get_credentials()
+    except Exception as exc:
+        logger.info('AWS credential resolution failed, skipping SigV4 FES probe: {}', exc)
         set_sigv4_fes_available(False)
         return
-
-    session = AwsHelper.create_session()
-    credentials = session.get_credentials()
     if credentials is None:
         logger.info('No AWS credentials found, skipping SigV4 FES probe')
         set_sigv4_fes_available(False)

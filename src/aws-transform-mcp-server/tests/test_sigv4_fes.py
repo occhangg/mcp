@@ -182,18 +182,6 @@ class TestProbeSigv4Fes:
     """Tests for the startup SigV4 FES probe."""
 
     @pytest.mark.asyncio
-    async def test_disabled_by_flag(self):
-        from awslabs.aws_transform_mcp_server.server import _probe_sigv4_fes
-
-        with (
-            patch(f'{_SERVER_MOD}.SIGV4_FES_ENABLED', False),
-            patch(f'{_SERVER_MOD}.set_sigv4_fes_available') as mock_set,
-        ):
-            await _probe_sigv4_fes()
-
-        mock_set.assert_called_once_with(False)
-
-    @pytest.mark.asyncio
     async def test_no_credentials(self):
         from awslabs.aws_transform_mcp_server.server import _probe_sigv4_fes
 
@@ -201,7 +189,6 @@ class TestProbeSigv4Fes:
         mock_session.get_credentials.return_value = None
 
         with (
-            patch(f'{_SERVER_MOD}.SIGV4_FES_ENABLED', True),
             patch(f'{_SERVER_MOD}.AwsHelper') as mock_helper,
             patch(f'{_SERVER_MOD}.set_sigv4_fes_available') as mock_set,
         ):
@@ -219,7 +206,6 @@ class TestProbeSigv4Fes:
         mock_session.region_name = 'us-east-1'
 
         with (
-            patch(f'{_SERVER_MOD}.SIGV4_FES_ENABLED', True),
             patch(f'{_SERVER_MOD}.AwsHelper') as mock_helper,
             patch(f'{_SERVER_MOD}.set_sigv4_fes_available') as mock_set,
             patch(f'{_SERVER_MOD}.derive_fes_endpoint', return_value='https://ep/'),
@@ -241,7 +227,6 @@ class TestProbeSigv4Fes:
         mock_session.region_name = 'us-east-1'
 
         with (
-            patch(f'{_SERVER_MOD}.SIGV4_FES_ENABLED', True),
             patch(f'{_SERVER_MOD}.AwsHelper') as mock_helper,
             patch(f'{_SERVER_MOD}.set_sigv4_fes_available') as mock_set,
             patch(f'{_SERVER_MOD}.derive_fes_endpoint', return_value='https://ep/'),
