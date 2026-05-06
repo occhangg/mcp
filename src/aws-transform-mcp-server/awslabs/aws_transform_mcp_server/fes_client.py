@@ -295,15 +295,12 @@ async def call_fes(
             session = AwsHelper.create_session()
             region = AwsHelper.resolve_region(session)
             endpoint = config_store.derive_fes_endpoint(region)
-            try:
-                return await call_fes_direct_sigv4(
-                    endpoint,
-                    operation,
-                    body,
-                    region=region,
-                )
-            except HttpError:
-                raise
+            return await call_fes_direct_sigv4(
+                endpoint,
+                operation,
+                body,
+                region=region,
+            )
         raise RuntimeError('Not configured. Call configure first.')
 
     # Token refresh (bearer mode only)
