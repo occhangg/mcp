@@ -229,7 +229,10 @@ async def run_oauth_flow(
     )
 
     print('Opening browser for authentication...', file=sys.stderr)
-    print(f'If the browser does not open, visit:\n{authorize_url}', file=sys.stderr)
+    print(  # codeql[py/clear-text-logging-sensitive-data]
+        f'If the browser does not open, visit:\n{authorize_url}',
+        file=sys.stderr,
+    )
     _open_browser(authorize_url)
 
     # Step 5: Wait for callback
