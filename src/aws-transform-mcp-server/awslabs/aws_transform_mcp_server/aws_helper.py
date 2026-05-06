@@ -39,6 +39,16 @@ class AwsHelper:
         return boto3.Session(profile_name=profile)
 
     @staticmethod
+    def create_session_with_region(region: str) -> boto3.Session:
+        """Create a boto3 Session with an explicit region.
+
+        Some credential providers (e.g., LoginProvider) need a region on the
+        session to create internal service clients during credential resolution.
+        """
+        profile = (os.environ.get('AWS_PROFILE') or '').strip() or None
+        return boto3.Session(profile_name=profile, region_name=region)
+
+    @staticmethod
     def resolve_region(session: Optional[boto3.Session] = None) -> str:
         """Resolve AWS region: AWS_REGION env → session profile region → us-east-1."""
         return (

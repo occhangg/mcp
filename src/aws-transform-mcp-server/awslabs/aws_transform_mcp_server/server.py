@@ -162,7 +162,9 @@ async def _probe_sigv4_fes() -> None:
     Attempts a ListWorkspaces call with SigV4 signing. If it succeeds,
     FES tools can work without explicit cookie/SSO configure.
     """
-    session = AwsHelper.create_session()
+    temp_session = AwsHelper.create_session()
+    region = AwsHelper.resolve_region(temp_session)
+    session = AwsHelper.create_session_with_region(region)
     try:
         credentials = session.get_credentials()
     except Exception as exc:
@@ -174,7 +176,6 @@ async def _probe_sigv4_fes() -> None:
         set_sigv4_fes_available(False)
         return
 
-    region = AwsHelper.resolve_region(session)
     endpoint = derive_fes_endpoint(region)
 
     try:
