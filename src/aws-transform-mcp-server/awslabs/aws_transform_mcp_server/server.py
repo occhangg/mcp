@@ -60,17 +60,22 @@ INSTRUCTIONS = """AWS Transform MCP Server — manage workspaces, jobs, tasks, c
 
 # Authentication
 
-Three auth methods, checked in priority order:
+Three auth methods (any ONE is sufficient):
 
-1. **Cookie/SSO** (explicit) → run `configure` with authMode "cookie" or "sso".
-2. **SigV4** (auto-detected) → if AWS credentials are available and the account
-   has SigV4 FES access enabled, all FES tools work without `configure`.
-   Set `AWS_PROFILE` in your MCP client config env block to select a profile.
-3. **Not configured** → tools return NOT_CONFIGURED with guidance.
+1. **SigV4** (zero-config, auto-detected at startup) → if the user's AWS profile
+   has valid credentials and their AWS Transform profile has been enabled
+   (via the AWS Transform console settings page), all tools work automatically
+   without calling `configure`. The user sets `AWS_PROFILE` and `AWS_REGION`
+   in their MCP client config env block.
+2. **SSO** (explicit) → run `configure` with authMode "sso". Opens a browser for
+   IAM Identity Center login. Requires startUrl and idcRegion from the user.
+3. **Cookie** (explicit) → run `configure` with authMode "cookie". Uses an
+   existing browser session. Requires origin URL and session cookie from the user.
+
+If `get_status` shows a valid connection (any method), do NOT call `configure`.
 
 - `configure` and `get_status` always work without auth.
-- `get_status` validates AWS credentials via STS, shows account ID, and
-  reports whether SigV4 FES access is available.
+- `get_status` shows which auth method is active and whether the connection is healthy.
 - `accept_connector` requires AWS credentials (for STS + TCP calls).
 
 # Tool Selection
@@ -102,7 +107,10 @@ may still be generating.
 
 # Error Recovery
 
-- `NOT_CONFIGURED` → run `configure` (cookie or SSO).
+- `NOT_CONFIGURED` → ask the user which auth method they prefer:
+  (1) SigV4: set AWS_PROFILE + AWS_REGION in MCP client env and restart,
+  (2) SSO: run `configure` with authMode "sso",
+  (3) Cookie: run `configure` with authMode "cookie".
 - AWS credential errors → Set `AWS_PROFILE` in your MCP client config env
   block and restart. Use `get_status` to verify credentials are working.
 - `INSTRUCTIONS_REQUIRED` → run `load_instructions` for the job.

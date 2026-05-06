@@ -497,14 +497,22 @@ class ConfigureHandler:
             else:
                 status['fes'] = {
                     'configured': False,
-                    'message': 'Not connected. Use configure with authMode "cookie" or "sso".',
+                    'message': 'Not connected to AWS Transform. Options: (1) configure with authMode "sso" '
+                    '(opens browser for IAM Identity Center login), (2) configure with '
+                    'authMode "cookie" (uses existing browser session), or (3) set '
+                    'AWS_PROFILE in the MCP client env block and restart for SigV4 '
+                    'auto-detection.',
                 }
         else:
             config = get_config()
             if config is None:
                 status['fes'] = {
                     'configured': False,
-                    'message': 'Not connected. Use configure with authMode "cookie" or "sso".',
+                    'message': 'Not connected to AWS Transform. Options: (1) configure with authMode "sso" '
+                    '(opens browser for IAM Identity Center login), (2) configure with '
+                    'authMode "cookie" (uses existing browser session), or (3) set '
+                    'AWS_PROFILE in the MCP client env block and restart for SigV4 '
+                    'auto-detection.',
                 }
                 return text_result(status, is_error=False)
             try:
@@ -543,7 +551,9 @@ class ConfigureHandler:
                     status['fes'] = {
                         'configured': False,
                         'message': (
-                            'Session expired or unauthorized. Re-authenticate with configure.'
+                            'SSO session expired. Re-authenticate with configure '
+                            '(authMode "sso"), or set AWS_PROFILE in the MCP client '
+                            'env block and restart for SigV4 auto-detection.'
                         ),
                     }
                 else:
@@ -609,12 +619,20 @@ class ConfigureHandler:
         except ValueError as exc:
             status['sigv4'] = {
                 'configured': False,
-                'message': f'Region configuration error: {exc}',
+                'message': (
+                    f'AWS region not configured: {exc}. '
+                    'Set AWS_REGION in the MCP client env block, or ensure your '
+                    'AWS profile has a region configured in ~/.aws/config.'
+                ),
             }
         except Exception as exc:
             status['sigv4'] = {
                 'configured': False,
-                'message': f'AWS credential validation failed: {exc}',
+                'message': (
+                    f'AWS credentials not available: {exc}. '
+                    'Set AWS_PROFILE in the MCP client env block and ensure '
+                    'credentials are valid (run aws sts get-caller-identity to test).'
+                ),
             }
 
         # ── SigV4 FES status ────────────────────────────────────────────

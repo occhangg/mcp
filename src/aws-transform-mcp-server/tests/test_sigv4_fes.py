@@ -174,7 +174,6 @@ class TestCallFesSigv4Fallback:
 
         mock_set.assert_not_called()
 
-
     @pytest.mark.asyncio
     async def test_explicit_config_supersedes_sigv4(self):
         """When SSO/cookie config exists, SigV4 path is never used."""
