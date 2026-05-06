@@ -54,7 +54,9 @@ def _open_browser(url: str) -> None:
         else:
             subprocess.Popen(['xdg-open', url], **popen_kwargs)
     except Exception:
-        sys.stderr.write(f'Could not open browser. Please open this URL manually:\n{url}\n')  # codeql[py/clear-text-logging-sensitive-data]
+        sys.stderr.write(
+            f'Could not open browser. Please open this URL manually:\n{url}\n'
+        )  # codeql[py/clear-text-logging-sensitive-data]
 
 
 def _generate_pkce() -> Tuple[str, str]:
@@ -222,7 +224,9 @@ async def run_oauth_flow(
         }
     )
 
-    sys.stderr.write(f'Opening browser for authentication...\nIf the browser does not open, visit:\n{authorize_url}\n')  # codeql[py/clear-text-logging-sensitive-data]
+    sys.stderr.write(
+        f'Opening browser for authentication...\nIf the browser does not open, visit:\n{authorize_url}\n'
+    )  # codeql[py/clear-text-logging-sensitive-data]
     _open_browser(authorize_url)
 
     # Step 5: Wait for callback
