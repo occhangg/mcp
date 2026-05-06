@@ -193,7 +193,7 @@ class TestCallFesSigv4Fallback:
             patch.object(config_store, 'get_config', return_value=mock_config),
             patch.object(config_store, 'is_sigv4_fes_available', return_value=True),
             patch(f'{_FES_MOD}.call_fes_direct_sigv4', new_callable=AsyncMock) as mock_sigv4,
-            patch(f'{_FES_MOD}._create_unsigned_client') as mock_unsigned,
+            patch(f'{_FES_MOD}._create_unsigned_client'),
             patch(f'{_FES_MOD}.asyncio.to_thread', new_callable=AsyncMock) as mock_thread,
         ):
             mock_thread.return_value = {'items': []}
