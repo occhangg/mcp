@@ -302,9 +302,7 @@ async def call_fes(
                     body,
                     region=region,
                 )
-            except HttpError as exc:
-                if exc.status_code in (401, 403):
-                    config_store.set_sigv4_fes_available(False)
+            except HttpError:
                 raise
         raise RuntimeError('Not configured. Call configure first.')
 

@@ -488,10 +488,17 @@ class ConfigureHandler:
 
         # ── FES status ──────────────────────────────────────────────────
         if not is_configured():
-            status['fes'] = {
-                'configured': False,
-                'message': 'Not connected. Use configure with authMode "cookie" or "sso".',
-            }
+            if is_sigv4_fes_available():
+                status['fes'] = {
+                    'configured': True,
+                    'authMode': 'sigv4',
+                    'message': 'Connected via SigV4 (auto-detected from AWS credentials).',
+                }
+            else:
+                status['fes'] = {
+                    'configured': False,
+                    'message': 'Not connected. Use configure with authMode "cookie" or "sso".',
+                }
         else:
             config = get_config()
             if config is None:

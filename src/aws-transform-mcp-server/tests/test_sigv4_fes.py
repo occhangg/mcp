@@ -97,8 +97,8 @@ class TestCallFesSigv4Fallback:
         mock_sigv4.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_sigv4_fallback_auth_failure_disables(self):
-        """401/403 should set sigv4_fes_available to False."""
+    async def test_sigv4_fallback_auth_failure_does_not_disable(self):
+        """401/403 should NOT disable sigv4_fes — credentials are transient."""
         from awslabs.aws_transform_mcp_server import config_store
         from awslabs.aws_transform_mcp_server.fes_client import call_fes
 
@@ -120,7 +120,7 @@ class TestCallFesSigv4Fallback:
             with pytest.raises(HttpError):
                 await call_fes('ListWorkspaces')
 
-        mock_set.assert_called_once_with(False)
+        mock_set.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_sigv4_fallback_transient_error_does_not_disable(self):
