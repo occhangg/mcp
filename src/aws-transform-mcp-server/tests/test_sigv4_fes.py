@@ -175,6 +175,33 @@ class TestCallFesSigv4Fallback:
         mock_set.assert_not_called()
 
 
+    @pytest.mark.asyncio
+    async def test_explicit_config_supersedes_sigv4(self):
+        """When SSO/cookie config exists, SigV4 path is never used."""
+        from awslabs.aws_transform_mcp_server import config_store
+        from awslabs.aws_transform_mcp_server.fes_client import call_fes
+
+        mock_config = MagicMock()
+        mock_config.auth_mode = 'bearer'
+        mock_config.bearer_token = 'test-token'
+        mock_config.token_expiry = int(__import__('time').time()) + 3600
+        mock_config.origin = 'https://test.transform.us-east-1.on.aws'
+        mock_config.fes_endpoint = 'https://api.transform.us-east-1.on.aws/'
+        mock_config.region = 'us-east-1'
+
+        with (
+            patch.object(config_store, 'get_config', return_value=mock_config),
+            patch.object(config_store, 'is_sigv4_fes_available', return_value=True),
+            patch(f'{_FES_MOD}.call_fes_direct_sigv4', new_callable=AsyncMock) as mock_sigv4,
+            patch(f'{_FES_MOD}._create_unsigned_client') as mock_unsigned,
+            patch(f'{_FES_MOD}.asyncio.to_thread', new_callable=AsyncMock) as mock_thread,
+        ):
+            mock_thread.return_value = {'items': []}
+            await call_fes('ListWorkspaces')
+
+        mock_sigv4.assert_not_called()
+
+
 # ── _probe_sigv4_fes ──────────────────────────────────────────────────────
 
 
