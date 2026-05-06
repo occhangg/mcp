@@ -185,6 +185,7 @@ async def _probe_sigv4_fes() -> None:
             {},
             timeout_seconds=FES_SIGV4_PROBE_TIMEOUT_SECONDS,
             max_retries=0,
+            region=region,
         )
         set_sigv4_fes_available(True)
         logger.info('SigV4 FES probe succeeded — FES tools available without configure')
