@@ -345,9 +345,8 @@ class ConfigureHandler:
 
         try:
             # Step 1: Run full OAuth flow
-            tokens = await run_oauth_flow(
-                start_url=startUrl, idc_region=idcRegion, scope=OAUTH_SCOPE
-            )
+            scope = os.environ.get('ATX_OAUTH_SCOPE', OAUTH_SCOPE)
+            tokens = await run_oauth_flow(start_url=startUrl, idc_region=idcRegion, scope=scope)
 
             # Step 2: Fan out ListAvailableProfiles across all regions
             profiles = await _discover_profiles(tokens.access_token)
@@ -541,17 +540,18 @@ class ConfigureHandler:
                     'auto-detection.',
                 }
                 return text_result(status, is_error=False)
+            fes_endpoint = derive_fes_endpoint(config.region or 'us-east-1')
             try:
                 if config.auth_mode == 'cookie':
                     result = await call_fes_direct_cookie(
-                        config.fes_endpoint,
+                        fes_endpoint,
                         config.origin,
                         config.session_cookie or '',
                         'VerifySession',
                     )
                 else:
                     result = await call_fes_direct_bearer(
-                        config.fes_endpoint,
+                        fes_endpoint,
                         config.bearer_token or '',
                         'VerifySession',
                         {},

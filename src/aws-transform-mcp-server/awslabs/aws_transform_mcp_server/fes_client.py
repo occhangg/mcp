@@ -307,7 +307,8 @@ async def call_fes(
     if config.auth_mode == 'bearer':
         config = await _ensure_fresh_token(config)
 
-    client = _create_unsigned_client(config.fes_endpoint, config.region or 'us-east-1')
+    endpoint = config_store.derive_fes_endpoint(config.region or 'us-east-1')
+    client = _create_unsigned_client(endpoint, config.region or 'us-east-1')
     if config.auth_mode == 'cookie':
         _inject_cookie_auth(client, config.origin, config.session_cookie or '')
     else:

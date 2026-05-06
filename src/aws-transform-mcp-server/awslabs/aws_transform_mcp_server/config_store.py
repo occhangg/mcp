@@ -49,17 +49,28 @@ def extract_region_from_origin(origin: str) -> str | None:
 def derive_fes_endpoint(region: str) -> str:
     """Derive the FES (Front End Service) endpoint for a given region.
 
+    If the ``ATX_FES_ENDPOINT`` environment variable is set, it is used instead.
+    The value may contain ``{region}`` which will be interpolated with the
+    provided region.
+
     Args:
         region: AWS region (e.g. 'us-east-1').
 
     Returns:
         The FES endpoint URL.
     """
+    override = os.environ.get('ATX_FES_ENDPOINT')
+    if override:
+        return override.format(region=region) if '{region}' in override else override
     return f'https://api.transform.{region}.on.aws/'
 
 
 def derive_tcp_endpoint(region: str) -> str:
     """Derive the TCP (Transform Control Plane) endpoint for a given region.
+
+    If the ``ATX_TCP_ENDPOINT`` environment variable is set, it is used instead.
+    The value may contain ``{region}`` which will be interpolated with the
+    provided region.
 
     Args:
         region: AWS region (e.g. 'us-east-1').
@@ -67,6 +78,9 @@ def derive_tcp_endpoint(region: str) -> str:
     Returns:
         The TCP endpoint URL.
     """
+    override = os.environ.get('ATX_TCP_ENDPOINT')
+    if override:
+        return override.format(region=region) if '{region}' in override else override
     return f'https://transform.{region}.api.aws'
 
 
