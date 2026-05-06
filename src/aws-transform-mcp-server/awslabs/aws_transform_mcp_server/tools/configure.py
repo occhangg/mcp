@@ -85,6 +85,7 @@ async def _discover_profiles(
     return all_profiles
 
 
+
 async def _select_profile(
     ctx: Context,
     profiles: List[Dict[str, Any]],
@@ -415,13 +416,39 @@ class ConfigureHandler:
         profile (e.g., different region or team workspace). Re-uses the existing bearer
         token to discover and select a new profile.
 
-        Requires an active bearer (SSO) connection. Does not work with cookie auth.
+        Requires an active bearer (SSO) connection. Does not work with SigV4 or cookie auth.
         """
         config = get_config()
-        if config is None or config.auth_mode != 'bearer' or not config.bearer_token:
+
+        # SigV4 profile switching is not supported because:
+        # 1. SigV4 call_fes() derives its FES endpoint from AWS_REGION — switching
+        #    profiles in a different region has no effect on subsequent calls.
+        # 2. VerifySession without an Origin header only confirms IAM creds, not
+        #    profile access.
+        # 3. There is no persistence mechanism for a "selected profile" in SigV4
+        #    mode — the switch would be immediately forgotten.
+        # Users should set AWS_REGION to match their desired profile's region.
+        if config is None:
+            if is_sigv4_fes_available():
+                return error_result(
+                    'SIGV4_NO_SWITCH',
+                    'Profile switching is not available in SigV4 mode. SigV4 routes '
+                    'to the Transform profile in your configured AWS region. To use a '
+                    'profile in a different region: (1) set AWS_REGION in your MCP client '
+                    'env block and restart the server, and (2) ensure the target profile '
+                    'has SigV4 access enabled in the AWS Transform console settings page.',
+                )
             return error_result(
                 'NOT_CONFIGURED',
-                'No active SSO session. Run configure with authMode "sso" first.',
+                'No active session. Connect via SSO (configure with authMode "sso") '
+                'or SigV4 (set AWS_PROFILE in MCP client env and restart).',
+            )
+
+        if config.auth_mode != 'bearer' or not config.bearer_token:
+            return error_result(
+                'NOT_CONFIGURED',
+                'Profile switching requires an active SSO session. '
+                'Run configure with authMode "sso" first.',
             )
 
         if config.token_expiry and int(time.time()) >= config.token_expiry:
