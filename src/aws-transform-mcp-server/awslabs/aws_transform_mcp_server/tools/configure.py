@@ -85,7 +85,6 @@ async def _discover_profiles(
     return all_profiles
 
 
-
 async def _select_profile(
     ctx: Context,
     profiles: List[Dict[str, Any]],

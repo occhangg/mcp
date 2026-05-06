@@ -325,6 +325,10 @@ async def _ensure_fresh_token(config: 'ConnectionConfig') -> 'ConnectionConfig':
         or not config.oidc_client_secret
         or not config.idc_region
     ):
+        if config.token_expiry and int(time.time()) >= config.token_expiry:
+            raise RuntimeError(
+                'SSO session expired. Run configure with authMode "sso" to re-authenticate.'
+            )
         return config
 
     now = int(time.time())
