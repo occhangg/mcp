@@ -271,7 +271,7 @@ class ConfigureHandler:
         """Authenticate and connect to AWS Transform.
 
         Use when the user needs to set up or re-establish a connection. Two modes:
-        - "cookie": immediate — validates the session cookie against FES.
+        - "cookie": immediate — validates the session cookie against the Transform API.
         Required params: origin, sessionCookie.
         - "sso": interactive — opens a browser for IAM Identity Center login (OAuth PKCE),
         discovers available profiles across all regions, and establishes a bearer token session.
@@ -348,7 +348,7 @@ class ConfigureHandler:
 
         try:
             # Step 1: Run full OAuth flow
-            scope = os.environ.get('ATX_OAUTH_SCOPE', OAUTH_SCOPE)
+            scope = os.environ.get('AWS_TRANSFORM_OAUTH_SCOPE', OAUTH_SCOPE)
             tokens = await run_oauth_flow(start_url=startUrl, idc_region=idcRegion, scope=scope)
 
             # Step 2: Fan out ListAvailableProfiles across all regions
@@ -417,7 +417,7 @@ class ConfigureHandler:
             Optional[str],
             Field(
                 description=(
-                    '(SigV4 mode, optional) Region to switch to. '
+                    '(AWS credential mode, optional) Region to switch to. '
                     'Use a value from availableRegions in the PROFILE_SELECTION_REQUIRED response. '
                     'If omitted, prompts for selection or returns available regions.'
                 ),
@@ -426,7 +426,7 @@ class ConfigureHandler:
     ) -> dict:
         """Switch to a different Transform profile (region).
 
-        For SigV4: selects which region to use. Pass region directly (e.g. "us-east-1")
+        For AWS credential auth: selects which region to use. Pass region directly (e.g. "us-east-1")
         or omit to be prompted. Use when get_status or a tool returns PROFILE_SELECTION_REQUIRED.
         For SSO: re-uses existing bearer token to discover and select a new profile.
         """
@@ -438,7 +438,7 @@ class ConfigureHandler:
             return error_result(
                 'NOT_CONFIGURED',
                 'No active session. Connect via SSO (configure with authMode "sso") '
-                'or SigV4 (set AWS_PROFILE in MCP client env and restart).',
+                'or AWS credentials (set AWS_PROFILE in MCP client env and restart).',
             )
 
         if config.auth_mode != 'bearer' or not config.bearer_token:
@@ -593,7 +593,7 @@ class ConfigureHandler:
         )
 
     async def get_status(self, ctx: Context) -> dict:
-        """Check the status of all connections (FES cookie/SSO/SigV4 and TCP SigV4)."""
+        """Check the status of all connections (Transform API cookie/SSO/AWS credentials and TCP)."""
         status: dict = {'serverVersion': SERVER_VERSION}
 
         # ── FES status ──────────────────────────────────────────────────
@@ -602,7 +602,7 @@ class ConfigureHandler:
                 status['fes'] = {
                     'configured': True,
                     'authMode': 'sigv4',
-                    'message': 'Connected via SigV4 (auto-detected from AWS credentials).',
+                    'message': 'Connected via AWS credentials (auto-detected).',
                 }
             else:
                 status['fes'] = {
@@ -610,8 +610,8 @@ class ConfigureHandler:
                     'message': 'Not connected to AWS Transform. Options: (1) configure with authMode "sso" '
                     '(opens browser for IAM Identity Center login), (2) configure with '
                     'authMode "cookie" (uses existing browser session), or (3) set '
-                    'AWS_PROFILE in the MCP client env block and restart for SigV4 '
-                    'auto-detection.',
+                    'AWS_PROFILE in the MCP client env block and restart for automatic '
+                    'credential detection.',
                 }
         else:
             config = get_config()
@@ -621,8 +621,8 @@ class ConfigureHandler:
                     'message': 'Not connected to AWS Transform. Options: (1) configure with authMode "sso" '
                     '(opens browser for IAM Identity Center login), (2) configure with '
                     'authMode "cookie" (uses existing browser session), or (3) set '
-                    'AWS_PROFILE in the MCP client env block and restart for SigV4 '
-                    'auto-detection.',
+                    'AWS_PROFILE in the MCP client env block and restart for automatic '
+                    'credential detection.',
                 }
                 return text_result(status, is_error=False)
             fes_endpoint = derive_fes_endpoint(config.region or 'us-east-1')
@@ -664,7 +664,7 @@ class ConfigureHandler:
                         'message': (
                             'SSO session expired. Re-authenticate with configure '
                             '(authMode "sso"), or set AWS_PROFILE in the MCP client '
-                            'env block and restart for SigV4 auto-detection.'
+                            'env block and restart for automatic credential detection.'
                         ),
                     }
                 else:
@@ -746,13 +746,13 @@ class ConfigureHandler:
                 ),
             }
 
-        # ── SigV4 FES status ────────────────────────────────────────────
+        # ── AWS credential API status ──────────────────────────────────
         status['sigv4Fes'] = {
             'available': is_sigv4_fes_available(),
             'message': (
-                'SigV4 FES auth enabled — FES tools work without configure.'
+                'AWS credential auth enabled — all API tools work without configure.'
                 if is_sigv4_fes_available()
-                else 'SigV4 FES auth not available. Use configure for FES tools.'
+                else 'AWS credential auth not available. Use configure to connect.'
             ),
         }
 

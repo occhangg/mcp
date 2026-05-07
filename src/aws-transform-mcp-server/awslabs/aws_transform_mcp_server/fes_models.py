@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pydantic request models for ElasticGumbyFrontEndService (FES) operations.
+"""Pydantic request models for Transform API operations.
 
-These are hand-written (not generated) models that mirror the FES C2J service
+These are hand-written (not generated) models that mirror the C2J service
 model for the subset of request shapes this MCP server actually sends.
 
 Drift is guarded by ``tests/test_fes_models_match_c2j.py`` which cross-checks

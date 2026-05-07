@@ -382,7 +382,7 @@ class TestCallBoto3:
 
         mock_client = MagicMock(spec=[])
 
-        with pytest.raises(ValueError, match='Unknown FES operation'):
+        with pytest.raises(ValueError, match='Unknown operation'):
             _call_boto3(mock_client, 'NonexistentOp', {})
 
     def test_client_error_raises_http_error(self):

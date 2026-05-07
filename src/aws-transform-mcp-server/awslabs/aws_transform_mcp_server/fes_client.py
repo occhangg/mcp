@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FES (Front End Service) client — boto3-based with cookie, bearer, or SigV4 auth.
+"""Transform API client — boto3-based with cookie, bearer, or AWS credential auth.
 
 Uses a vendored botocore C2J model so ``boto3.client("elasticgumbyfrontendservice")``
-works without the Brazil-only ElasticGumbyFrontEndServicePythonClient package.
+works without the internal SDK package.
 """
 
 import asyncio
@@ -145,7 +145,7 @@ def _call_boto3(client, operation: str, body: Dict[str, Any]) -> Any:
     method_name = xform_name(operation)
     method = getattr(client, method_name, None)
     if method is None:
-        raise ValueError(f'Unknown FES operation: {operation}')
+        raise ValueError(f'Unknown operation: {operation}')
     try:
         result = method(**body)
     except ClientError as exc:

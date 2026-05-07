@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""List resources tool handler — dispatches to FES/TCP based on resource type."""
+"""List resources tool handler — dispatches to API/control-plane based on resource type."""
 
 import asyncio
 from awslabs.aws_transform_mcp_server.audit import audited_tool
@@ -162,10 +162,10 @@ async def paginated_fes(
     token_remap: Optional[Dict[str, str]] = None,
     transform: Optional[Callable[[Any], Any]] = None,
 ) -> Dict[str, Any]:
-    """Call FES with pagination and optional post-processing.
+    """Call the Transform API with pagination and optional post-processing.
 
     Args:
-        api: FES operation name.
+        api: API operation name.
         body: Request body (mutated in place with pagination fields).
         max_results: Optional max results.
         next_token: Optional pagination token.

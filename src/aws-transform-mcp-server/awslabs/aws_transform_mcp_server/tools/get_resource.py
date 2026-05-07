@@ -79,7 +79,7 @@ class GetResourceType(str, Enum):
 
 
 async def get_session() -> Dict[str, Any]:
-    """Verify the current FES session.
+    """Verify the current API session.
 
     Returns:
         A dict with ``success: True`` and session data, or ``success: False``
