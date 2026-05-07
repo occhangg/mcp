@@ -61,7 +61,7 @@ def derive_fes_endpoint(region: str) -> str:
     """
     override = os.environ.get('ATX_FES_ENDPOINT')
     if override:
-        return override.format(region=region) if '{region}' in override else override
+        return override.replace('{region}', region) if '{region}' in override else override
     return f'https://api.transform.{region}.on.aws/'
 
 
@@ -80,7 +80,7 @@ def derive_tcp_endpoint(region: str) -> str:
     """
     override = os.environ.get('ATX_TCP_ENDPOINT')
     if override:
-        return override.format(region=region) if '{region}' in override else override
+        return override.replace('{region}', region) if '{region}' in override else override
     return f'https://transform.{region}.api.aws'
 
 
@@ -336,7 +336,7 @@ _default_store = ConfigStore()
 
 _sigv4_fes_available: bool | None = None
 _sigv4_region: str | None = None
-_sigv4_regions: list | None = None
+_sigv4_regions: list[str] | None = None
 
 
 def set_sigv4_fes_available(available: bool) -> None:
@@ -361,13 +361,13 @@ def get_sigv4_region() -> str | None:
     return _sigv4_region
 
 
-def set_sigv4_regions(regions: list) -> None:
+def set_sigv4_regions(regions: list[str]) -> None:
     """Store discovered SigV4 regions for deferred selection."""
     global _sigv4_regions
     _sigv4_regions = regions
 
 
-def get_sigv4_regions() -> list | None:
+def get_sigv4_regions() -> list[str] | None:
     """Return discovered SigV4 regions, or None if not discovered."""
     return _sigv4_regions
 

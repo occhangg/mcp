@@ -176,12 +176,10 @@ async def _probe_sigv4_fes() -> None:
     If multiple regions succeed, stores them for deferred user selection.
     If no regions succeed, disables SigV4 FES.
     """
-    import os as _os
-
     logger.info(
         'SigV4 FES probe starting (build: region-discovery), AWS_PROFILE={}, AWS_REGION={}',
-        _os.environ.get('AWS_PROFILE'),
-        _os.environ.get('AWS_REGION'),
+        os.environ.get('AWS_PROFILE'),
+        os.environ.get('AWS_REGION'),
     )
     session = AwsHelper.create_session()
     try:
@@ -217,7 +215,7 @@ async def _probe_sigv4_fes() -> None:
         )
 
 
-async def _discover_sigv4_regions() -> list:
+async def _discover_sigv4_regions() -> list[str]:
     """Fan out ListWorkspaces via SigV4 across all FES regions.
 
     Returns list of region strings where the call succeeded (account has
@@ -237,7 +235,7 @@ async def _discover_sigv4_regions() -> list:
                     max_retries=0,
                     region=region,
                 ),
-                timeout=PROFILE_DISCOVERY_TIMEOUT_SECONDS,
+                timeout=PROFILE_DISCOVERY_TIMEOUT_SECONDS + 2,
             )
             logger.info('SigV4 region discovery: {} succeeded', region)
             return region

@@ -194,8 +194,7 @@ def failure_result(error: Exception, hint: Optional[str] = None) -> Dict[str, An
                     'suggestedAction': ('Call switch_profile to select a region.'),
                 },
                 'availableRegions': [
-                    {'region': r, 'endpoint': derive_fes_endpoint(r)}
-                    for r in error.regions
+                    {'region': r, 'endpoint': derive_fes_endpoint(r)} for r in error.regions
                 ],
             },
             is_error=True,

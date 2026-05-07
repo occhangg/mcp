@@ -418,6 +418,7 @@ class ConfigureHandler:
             Field(
                 description=(
                     '(SigV4 mode, optional) Region to switch to. '
+                    'Use a value from availableRegions in the PROFILE_SELECTION_REQUIRED response. '
                     'If omitted, prompts for selection or returns available regions.'
                 ),
             ),
@@ -545,45 +546,32 @@ class ConfigureHandler:
 
         # Try elicitation
         try:
-            from mcp.server.elicitation import elicit_with_validation
-            from mcp.types import ClientCapabilities, ElicitationCapability
-        except ImportError:
-            pass
-        else:
-            try:
-                session = ctx.session
-                has_elicitation = session.check_client_capability(
-                    ClientCapabilities(elicitation=ElicitationCapability())
+            schema_extra: Dict[str, Any] = {'enum': available}
+
+            class RegionSelection(BaseModel):
+                region: str = Field(
+                    ...,
+                    json_schema_extra=schema_extra,
                 )
 
-                if has_elicitation:
-                    schema_extra: Dict[str, Any] = {'enum': available}
+            result = await ctx.elicit(
+                'Which region do you want to use?',
+                RegionSelection,
+            )
 
-                    class RegionSelection(BaseModel):
-                        region: str = Field(
-                            ...,
-                            json_schema_extra=schema_extra,
-                        )
+            if result.action == 'accept':
+                selected_region = result.data.region
+                set_sigv4_region(selected_region)
+                return success_result(
+                    {
+                        'message': f'Switched to region {selected_region}',
+                        'region': selected_region,
+                    }
+                )
 
-                    result = await elicit_with_validation(
-                        session,
-                        'Which region do you want to use?',
-                        RegionSelection,
-                    )
-
-                    if result.action == 'accept':
-                        selected_region = result.data.region
-                        set_sigv4_region(selected_region)
-                        return success_result(
-                            {
-                                'message': f'Switched to region {selected_region}',
-                                'region': selected_region,
-                            }
-                        )
-
-                    return error_result('CANCELLED', 'Region selection was cancelled.')
-            except Exception as exc:
-                logger.debug('Elicitation failed for SigV4 region switch: {}', exc)
+            return error_result('CANCELLED', 'Region selection was cancelled.')
+        except Exception as exc:
+            logger.debug('Elicitation failed for SigV4 region switch: {}', exc)
 
         # Fallback: return list for LLM to present
         return text_result(
