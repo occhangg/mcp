@@ -18,8 +18,17 @@ import asyncio
 import uuid
 from awslabs.aws_transform_mcp_server.audit import audited_tool
 from awslabs.aws_transform_mcp_server.config_store import is_fes_available
-from awslabs.aws_transform_mcp_server.fes_client import call_fes
-from awslabs.aws_transform_mcp_server.fes_models import (
+from awslabs.aws_transform_mcp_server.tool_utils import (
+    CREATE,
+    DELETE_IDEMPOTENT,
+    MUTATE,
+    error_result,
+    failure_result,
+    format_job_response,
+    success_result,
+)
+from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_models import (
     BatchGetMessageRequest,
     ChatJobMetadata,
     CreateJobRequest,
@@ -31,15 +40,6 @@ from awslabs.aws_transform_mcp_server.fes_models import (
     StartJobRequest,
     StopJobRequest,
     WorkspaceMetadata,
-)
-from awslabs.aws_transform_mcp_server.tool_utils import (
-    CREATE,
-    DELETE_IDEMPOTENT,
-    MUTATE,
-    error_result,
-    failure_result,
-    format_job_response,
-    success_result,
 )
 from loguru import logger
 from mcp.server.fastmcp import Context

@@ -17,7 +17,7 @@
 These are hand-written (not generated) models that mirror the C2J service
 model for the subset of request shapes this MCP server actually sends.
 
-Drift is guarded by ``tests/test_fes_models_match_c2j.py`` which cross-checks
+Drift is guarded by ``tests/test_transform_api_models_match_c2j.py`` which cross-checks
 every model against ``_service_model/.../service-2.json``:
 
 - Every field present on a Pydantic model must exist in the C2J input shape.

@@ -21,13 +21,6 @@ from awslabs.aws_transform_mcp_server.config_store import (
     get_config,
     is_fes_available,
 )
-from awslabs.aws_transform_mcp_server.fes_client import call_fes
-from awslabs.aws_transform_mcp_server.fes_models import (
-    AccountConnectionRequest,
-    AwsAccountConnectionRequest,
-    CreateConnectorRequest,
-    GetConnectorRequest,
-)
 from awslabs.aws_transform_mcp_server.tcp_client import call_tcp
 from awslabs.aws_transform_mcp_server.tool_utils import (
     CREATE,
@@ -35,6 +28,13 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     error_result,
     failure_result,
     success_result,
+)
+from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_models import (
+    AccountConnectionRequest,
+    AwsAccountConnectionRequest,
+    CreateConnectorRequest,
+    GetConnectorRequest,
 )
 from mcp.server.fastmcp import Context
 from pydantic import Field

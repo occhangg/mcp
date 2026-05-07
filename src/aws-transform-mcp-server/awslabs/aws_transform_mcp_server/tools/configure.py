@@ -39,10 +39,6 @@ from awslabs.aws_transform_mcp_server.consts import (
     OAUTH_SCOPE,
     PROFILE_DISCOVERY_TIMEOUT_SECONDS,
 )
-from awslabs.aws_transform_mcp_server.fes_client import (
-    call_fes_direct_bearer,
-    call_fes_direct_cookie,
-)
 from awslabs.aws_transform_mcp_server.http_utils import HttpError
 from awslabs.aws_transform_mcp_server.oauth import run_oauth_flow
 from awslabs.aws_transform_mcp_server.tool_utils import (
@@ -50,6 +46,10 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     failure_result,
     success_result,
     text_result,
+)
+from awslabs.aws_transform_mcp_server.transform_api_client import (
+    call_fes_direct_bearer,
+    call_fes_direct_cookie,
 )
 from loguru import logger
 from mcp.server.fastmcp import Context

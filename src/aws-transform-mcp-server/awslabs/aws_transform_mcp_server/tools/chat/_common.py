@@ -16,8 +16,9 @@
 
 import asyncio
 import uuid
-from awslabs.aws_transform_mcp_server.fes_client import call_fes
-from awslabs.aws_transform_mcp_server.fes_models import (
+from awslabs.aws_transform_mcp_server.tool_utils import error_result
+from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_models import (
     BatchGetMessageRequest,
     ChatJobMetadata,
     ListMessagesRequest,
@@ -26,7 +27,6 @@ from awslabs.aws_transform_mcp_server.fes_models import (
     SendMessageRequest,
     WorkspaceMetadata,
 )
-from awslabs.aws_transform_mcp_server.tool_utils import error_result
 from typing import Any, Dict, Optional, TypedDict
 
 

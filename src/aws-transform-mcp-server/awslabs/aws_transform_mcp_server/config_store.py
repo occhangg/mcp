@@ -314,7 +314,9 @@ class ConfigStore:
                     STARTUP_MAX_RETRIES,
                     STARTUP_TIMEOUT_SECONDS,
                 )
-                from awslabs.aws_transform_mcp_server.fes_client import call_fes_direct_cookie
+                from awslabs.aws_transform_mcp_server.transform_api_client import (
+                    call_fes_direct_cookie,
+                )
 
                 await call_fes_direct_cookie(
                     config.fes_endpoint,

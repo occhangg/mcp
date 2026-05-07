@@ -180,7 +180,7 @@ def failure_result(error: Exception, hint: Optional[str] = None) -> Dict[str, An
     If *error* carries ``status_code`` and ``body`` attributes (e.g. an HttpError),
     those are included in the response.
     """
-    from awslabs.aws_transform_mcp_server.fes_client import ProfileSelectionRequired
+    from awslabs.aws_transform_mcp_server.transform_api_client import ProfileSelectionRequired
 
     if isinstance(error, ProfileSelectionRequired):
         from awslabs.aws_transform_mcp_server.config_store import derive_fes_endpoint

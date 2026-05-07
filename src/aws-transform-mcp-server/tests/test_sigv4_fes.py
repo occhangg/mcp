@@ -15,8 +15,8 @@
 """Tests for SigV4 FES auth: probe, direct call, and call_fes fallback."""
 
 import pytest
-from awslabs.aws_transform_mcp_server.fes_client import ProfileSelectionRequired
 from awslabs.aws_transform_mcp_server.http_utils import HttpError
+from awslabs.aws_transform_mcp_server.transform_api_client import ProfileSelectionRequired
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -32,7 +32,7 @@ class TestCallFesSigv4:
 
     @pytest.mark.asyncio
     async def test_happy_path(self):
-        from awslabs.aws_transform_mcp_server.fes_client import call_fes_direct_sigv4
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes_direct_sigv4
 
         with (
             patch(f'{_FES_MOD}._call_boto3', return_value={'items': []}) as mock_call,
@@ -54,7 +54,7 @@ class TestCallFesSigv4:
     @pytest.mark.asyncio
     async def test_no_credentials_raises(self):
         """SigV4 client creation with no credentials raises ClientError at call time."""
-        from awslabs.aws_transform_mcp_server.fes_client import call_fes_direct_sigv4
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes_direct_sigv4
 
         with (
             patch(f'{_FES_MOD}._call_boto3', side_effect=HttpError(403, {}, 'HTTP 403')),
@@ -79,7 +79,7 @@ class TestCallFesSigv4Fallback:
     @pytest.mark.asyncio
     async def test_sigv4_fallback_success(self):
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.fes_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
 
         with (
             patch.object(config_store, 'get_config', return_value=None),
@@ -104,7 +104,7 @@ class TestCallFesSigv4Fallback:
     async def test_sigv4_fallback_region_selection_required(self):
         """When region is not set but regions exist, raises ProfileSelectionRequired."""
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.fes_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
 
         regions = ['us-east-1', 'eu-central-1']
 
@@ -123,7 +123,7 @@ class TestCallFesSigv4Fallback:
     async def test_sigv4_fallback_auth_failure_does_not_disable(self):
         """401/403 should NOT disable sigv4_fes — credentials are transient."""
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.fes_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
 
         with (
             patch.object(config_store, 'get_config', return_value=None),
@@ -146,7 +146,7 @@ class TestCallFesSigv4Fallback:
     async def test_sigv4_fallback_transient_error_does_not_disable(self):
         """500/503 should NOT set sigv4_fes_available to False."""
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.fes_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
 
         with (
             patch.object(config_store, 'get_config', return_value=None),
@@ -169,7 +169,7 @@ class TestCallFesSigv4Fallback:
     async def test_sigv4_fallback_non_http_error_does_not_disable(self):
         """Non-HttpError exceptions should NOT disable SigV4."""
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.fes_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
 
         with (
             patch.object(config_store, 'get_config', return_value=None),
@@ -192,7 +192,7 @@ class TestCallFesSigv4Fallback:
     async def test_explicit_config_supersedes_sigv4(self):
         """When SSO/cookie config exists, SigV4 path is never used."""
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.fes_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
 
         mock_config = MagicMock()
         mock_config.auth_mode = 'bearer'

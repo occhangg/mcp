@@ -19,15 +19,6 @@ import os
 import uuid
 from awslabs.aws_transform_mcp_server.audit import audited_tool
 from awslabs.aws_transform_mcp_server.config_store import is_fes_available
-from awslabs.aws_transform_mcp_server.fes_client import call_fes
-from awslabs.aws_transform_mcp_server.fes_models import (
-    CreateArtifactDownloadUrlRequest,
-    GetHitlTaskRequest,
-    HitlTaskArtifact,
-    SubmitCriticalHitlTaskRequest,
-    SubmitStandardHitlTaskRequest,
-    UpdateHitlTaskRequest,
-)
 from awslabs.aws_transform_mcp_server.file_validation import validate_read_path
 from awslabs.aws_transform_mcp_server.guidance_nudge import job_needs_check
 from awslabs.aws_transform_mcp_server.hitl_schemas import format_and_validate
@@ -36,6 +27,15 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     error_result,
     failure_result,
     success_result,
+)
+from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_models import (
+    CreateArtifactDownloadUrlRequest,
+    GetHitlTaskRequest,
+    HitlTaskArtifact,
+    SubmitCriticalHitlTaskRequest,
+    SubmitStandardHitlTaskRequest,
+    UpdateHitlTaskRequest,
 )
 from awslabs.aws_transform_mcp_server.upload_helper import (
     infer_file_type,

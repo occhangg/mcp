@@ -17,17 +17,17 @@
 import uuid
 from awslabs.aws_transform_mcp_server.audit import audited_tool
 from awslabs.aws_transform_mcp_server.config_store import is_fes_available
-from awslabs.aws_transform_mcp_server.fes_client import call_fes
-from awslabs.aws_transform_mcp_server.fes_models import (
-    CreateWorkspaceRequest,
-    DeleteWorkspaceRequest,
-)
 from awslabs.aws_transform_mcp_server.tool_utils import (
     DELETE_IDEMPOTENT,
     MUTATE,
     error_result,
     failure_result,
     success_result,
+)
+from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_models import (
+    CreateWorkspaceRequest,
+    DeleteWorkspaceRequest,
 )
 from mcp.server.fastmcp import Context
 from pydantic import Field

@@ -34,8 +34,8 @@ from awslabs.aws_transform_mcp_server.consts import (
     TIMEOUT_SECONDS,
     TOKEN_REFRESH_BUFFER_SECS,
 )
-from awslabs.aws_transform_mcp_server.fes_models import FESRequest
 from awslabs.aws_transform_mcp_server.http_utils import HttpError
+from awslabs.aws_transform_mcp_server.transform_api_models import FESRequest
 from botocore import UNSIGNED, xform_name
 from botocore.config import Config as BotoConfig
 from botocore.exceptions import ClientError

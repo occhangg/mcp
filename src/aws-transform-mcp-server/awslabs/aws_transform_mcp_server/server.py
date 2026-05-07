@@ -35,7 +35,6 @@ from awslabs.aws_transform_mcp_server.consts import (
     FES_REGIONS,
     PROFILE_DISCOVERY_TIMEOUT_SECONDS,
 )
-from awslabs.aws_transform_mcp_server.fes_client import call_fes_direct_sigv4
 from awslabs.aws_transform_mcp_server.tools.adaptive_poll import AdaptivePollHandler
 from awslabs.aws_transform_mcp_server.tools.artifact import ArtifactHandler
 from awslabs.aws_transform_mcp_server.tools.chat import ChatHandler
@@ -49,6 +48,7 @@ from awslabs.aws_transform_mcp_server.tools.job_status import JobStatusHandler
 from awslabs.aws_transform_mcp_server.tools.list_resources import ListResourcesHandler
 from awslabs.aws_transform_mcp_server.tools.load_instructions import LoadInstructionsHandler
 from awslabs.aws_transform_mcp_server.tools.workspace import WorkspaceHandler
+from awslabs.aws_transform_mcp_server.transform_api_client import call_fes_direct_sigv4
 from loguru import logger
 from mcp.server.fastmcp import FastMCP
 from pathlib import Path
