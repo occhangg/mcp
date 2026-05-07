@@ -26,10 +26,13 @@ from awslabs.aws_transform_mcp_server.config_store import (
     derive_fes_endpoint,
     extract_region_from_origin,
     get_config,
+    get_sigv4_region,
+    get_sigv4_regions,
     is_configured,
     is_sigv4_fes_available,
     persist_config,
     set_config,
+    set_sigv4_region,
 )
 from awslabs.aws_transform_mcp_server.consts import (
     FES_REGIONS,
@@ -408,34 +411,16 @@ class ConfigureHandler:
         )
 
     async def switch_profile(self, ctx: Context) -> dict:
-        """Switch to a different Transform profile without re-authenticating.
+        """Switch to a different Transform profile (region).
 
-        Use when already connected via SSO and the user wants to switch to a different
-        profile (e.g., different region or team workspace). Re-uses the existing bearer
-        token to discover and select a new profile.
-
-        Requires an active bearer (SSO) connection. Does not work with SigV4 or cookie auth.
+        For SigV4: selects which region to use when multiple regions are available.
+        For SSO: re-uses existing bearer token to discover and select a new profile.
         """
         config = get_config()
 
-        # SigV4 profile switching is not supported because:
-        # 1. SigV4 call_fes() derives its FES endpoint from AWS_REGION — switching
-        #    profiles in a different region has no effect on subsequent calls.
-        # 2. VerifySession without an Origin header only confirms IAM creds, not
-        #    profile access.
-        # 3. There is no persistence mechanism for a "selected profile" in SigV4
-        #    mode — the switch would be immediately forgotten.
-        # Users should set AWS_REGION to match their desired profile's region.
         if config is None:
             if is_sigv4_fes_available():
-                return error_result(
-                    'SIGV4_NO_SWITCH',
-                    'Profile switching is not available in SigV4 mode. SigV4 routes '
-                    'to the Transform profile in your configured AWS region. To use a '
-                    'profile in a different region: (1) set AWS_REGION in your MCP client '
-                    'env block and restart the server, and (2) ensure the target profile '
-                    'has SigV4 access enabled in the AWS Transform console settings page.',
-                )
+                return await self._switch_sigv4_region(ctx)
             return error_result(
                 'NOT_CONFIGURED',
                 'No active session. Connect via SSO (configure with authMode "sso") '
@@ -505,6 +490,88 @@ class ConfigureHandler:
                 'origin': resolved_origin,
                 'session': session,
             }
+        )
+
+    async def _switch_sigv4_region(self, ctx: Context) -> dict:
+        """Handle region selection for SigV4 callers."""
+        regions = get_sigv4_regions()
+        current = get_sigv4_region()
+
+        if not regions and not current:
+            return error_result(
+                'NO_REGIONS',
+                'No regions discovered. Restart the server to re-probe.',
+            )
+
+        available = regions or ([current] if current else [])
+
+        if len(available) == 1:
+            set_sigv4_region(available[0])
+            return success_result(
+                {
+                    'message': f'Only one region available, already selected: {available[0]}',
+                    'region': available[0],
+                }
+            )
+
+        # Try elicitation
+        try:
+            from mcp.server.elicitation import elicit_with_validation
+            from mcp.types import ClientCapabilities, ElicitationCapability
+        except ImportError:
+            pass
+        else:
+            try:
+                session = ctx.session
+                has_elicitation = session.check_client_capability(
+                    ClientCapabilities(elicitation=ElicitationCapability())
+                )
+
+                if has_elicitation:
+                    schema_extra: Dict[str, Any] = {'enum': available}
+
+                    class RegionSelection(BaseModel):
+                        region: str = Field(
+                            ...,
+                            json_schema_extra=schema_extra,
+                        )
+
+                    result = await elicit_with_validation(
+                        session,
+                        'Which region do you want to use?',
+                        RegionSelection,
+                    )
+
+                    if result.action == 'accept':
+                        selected_region = result.data.region
+                        set_sigv4_region(selected_region)
+                        return success_result(
+                            {
+                                'message': f'Switched to region {selected_region}',
+                                'region': selected_region,
+                            }
+                        )
+
+                    return error_result('CANCELLED', 'Region selection was cancelled.')
+            except Exception as exc:
+                logger.debug('Elicitation failed for SigV4 region switch: {}', exc)
+
+        # Fallback: return list for LLM to present
+        return text_result(
+            {
+                'success': False,
+                'error': {
+                    'code': 'REGION_SELECTION_REQUIRED',
+                    'message': 'Multiple regions available. Please choose one.',
+                    'suggestedAction': (
+                        'Ask the user which region they want, then call switch_profile again.'
+                    ),
+                },
+                'availableRegions': [
+                    {'region': r, 'endpoint': derive_fes_endpoint(r)} for r in available
+                ],
+            },
+            is_error=True,
         )
 
     async def get_status(self, ctx: Context) -> dict:
