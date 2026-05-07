@@ -248,9 +248,7 @@ class TestProbeSigv4Fes:
             patch(f'{_SERVER_MOD}.AwsHelper') as mock_helper,
             patch(f'{_SERVER_MOD}.set_sigv4_fes_available') as mock_set_available,
             patch(f'{_SERVER_MOD}.set_sigv4_region') as mock_set_region,
-            patch(
-                f'{_SERVER_MOD}._discover_sigv4_regions', new_callable=AsyncMock
-            ) as mock_disc,
+            patch(f'{_SERVER_MOD}._discover_sigv4_regions', new_callable=AsyncMock) as mock_disc,
         ):
             mock_helper.create_session.return_value = mock_session
             mock_disc.return_value = ['us-east-1']
@@ -271,9 +269,7 @@ class TestProbeSigv4Fes:
             patch(f'{_SERVER_MOD}.set_sigv4_fes_available') as mock_set_available,
             patch(f'{_SERVER_MOD}.set_sigv4_region') as mock_set_region,
             patch(f'{_SERVER_MOD}.set_sigv4_regions') as mock_set_regions,
-            patch(
-                f'{_SERVER_MOD}._discover_sigv4_regions', new_callable=AsyncMock
-            ) as mock_disc,
+            patch(f'{_SERVER_MOD}._discover_sigv4_regions', new_callable=AsyncMock) as mock_disc,
         ):
             mock_helper.create_session.return_value = mock_session
             mock_disc.return_value = ['us-east-1', 'eu-central-1']
@@ -293,9 +289,7 @@ class TestProbeSigv4Fes:
         with (
             patch(f'{_SERVER_MOD}.AwsHelper') as mock_helper,
             patch(f'{_SERVER_MOD}.set_sigv4_fes_available') as mock_set,
-            patch(
-                f'{_SERVER_MOD}._discover_sigv4_regions', new_callable=AsyncMock
-            ) as mock_disc,
+            patch(f'{_SERVER_MOD}._discover_sigv4_regions', new_callable=AsyncMock) as mock_disc,
         ):
             mock_helper.create_session.return_value = mock_session
             mock_disc.return_value = []
