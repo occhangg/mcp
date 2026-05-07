@@ -273,7 +273,7 @@ class TestPersistence:
             patch.object(store, '_config_dir', str(tmp_path)),
             patch.object(store, '_config_file', str(config_file)),
             patch(
-                'awslabs.aws_transform_mcp_server.fes_client.call_fes_direct_cookie',
+                'awslabs.aws_transform_mcp_server.transform_api_client.call_fes_direct_cookie',
                 new_callable=AsyncMock,
                 return_value={'userId': 'user-1'},
             ),
@@ -302,7 +302,7 @@ class TestPersistence:
             patch.object(store, '_config_dir', str(tmp_path)),
             patch.object(store, '_config_file', str(config_file)),
             patch(
-                'awslabs.aws_transform_mcp_server.fes_client.call_fes_direct_cookie',
+                'awslabs.aws_transform_mcp_server.transform_api_client.call_fes_direct_cookie',
                 new_callable=AsyncMock,
                 side_effect=Exception('401 Unauthorized'),
             ),
