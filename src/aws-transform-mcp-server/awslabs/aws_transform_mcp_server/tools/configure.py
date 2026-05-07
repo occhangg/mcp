@@ -410,17 +410,30 @@ class ConfigureHandler:
             }
         )
 
-    async def switch_profile(self, ctx: Context) -> dict:
+    async def switch_profile(
+        self,
+        ctx: Context,
+        region: Annotated[
+            Optional[str],
+            Field(
+                description=(
+                    '(SigV4 mode, optional) Region to switch to. '
+                    'If omitted, prompts for selection or returns available regions.'
+                ),
+            ),
+        ] = None,
+    ) -> dict:
         """Switch to a different Transform profile (region).
 
-        For SigV4: selects which region to use when multiple regions are available.
+        For SigV4: selects which region to use. Pass region directly (e.g. "us-east-1")
+        or omit to be prompted. Use when get_status or a tool returns PROFILE_SELECTION_REQUIRED.
         For SSO: re-uses existing bearer token to discover and select a new profile.
         """
         config = get_config()
 
         if config is None:
             if is_sigv4_fes_available():
-                return await self._switch_sigv4_region(ctx)
+                return await self._switch_sigv4_region(ctx, region)
             return error_result(
                 'NOT_CONFIGURED',
                 'No active session. Connect via SSO (configure with authMode "sso") '
@@ -492,7 +505,7 @@ class ConfigureHandler:
             }
         )
 
-    async def _switch_sigv4_region(self, ctx: Context) -> dict:
+    async def _switch_sigv4_region(self, ctx: Context, region: Optional[str] = None) -> dict:
         """Handle region selection for SigV4 callers."""
         regions = get_sigv4_regions()
         current = get_sigv4_region()
@@ -504,6 +517,22 @@ class ConfigureHandler:
             )
 
         available = regions or ([current] if current else [])
+
+        # If region was provided directly, validate and select it
+        if region:
+            if region in available:
+                set_sigv4_region(region)
+                return success_result(
+                    {
+                        'message': f'Switched to region {region}',
+                        'region': region,
+                    }
+                )
+            return error_result(
+                'INVALID_REGION',
+                f'Region "{region}" is not available.',
+                f'Available regions: {", ".join(available)}',
+            )
 
         if len(available) == 1:
             set_sigv4_region(available[0])
@@ -564,7 +593,8 @@ class ConfigureHandler:
                     'code': 'REGION_SELECTION_REQUIRED',
                     'message': 'Multiple regions available. Please choose one.',
                     'suggestedAction': (
-                        'Ask the user which region they want, then call switch_profile again.'
+                        'Ask the user which region they want, then call '
+                        'switch_profile with the region parameter.'
                     ),
                 },
                 'availableRegions': [
