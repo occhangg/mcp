@@ -180,6 +180,28 @@ def failure_result(error: Exception, hint: Optional[str] = None) -> Dict[str, An
     If *error* carries ``status_code`` and ``body`` attributes (e.g. an HttpError),
     those are included in the response.
     """
+    from awslabs.aws_transform_mcp_server.fes_client import ProfileSelectionRequired
+
+    if isinstance(error, ProfileSelectionRequired):
+        return text_result(
+            {
+                'success': False,
+                'error': {
+                    'code': 'PROFILE_SELECTION_REQUIRED',
+                    'message': 'Multiple profiles found. Please choose one.',
+                    'suggestedAction': ('Call switch_profile to select a profile.'),
+                },
+                'availableProfiles': [
+                    {
+                        'profileName': p.get('profileName'),
+                        'applicationUrl': p.get('applicationUrl'),
+                    }
+                    for p in error.profiles
+                ],
+            },
+            is_error=True,
+        )
+
     msg = str(error)
     error_obj: Dict[str, Any] = {'code': 'REQUEST_FAILED', 'message': msg}
     status = getattr(error, 'status_code', None)

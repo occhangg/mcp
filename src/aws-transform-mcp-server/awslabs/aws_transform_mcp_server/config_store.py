@@ -335,6 +335,9 @@ class ConfigStore:
 _default_store = ConfigStore()
 
 _sigv4_fes_available: bool | None = None
+_sigv4_origin: str | None = None
+_sigv4_region: str | None = None
+_sigv4_profiles: list | None = None
 
 
 def set_sigv4_fes_available(available: bool) -> None:
@@ -346,6 +349,34 @@ def set_sigv4_fes_available(available: bool) -> None:
 def is_sigv4_fes_available() -> bool:
     """Return True if SigV4 FES auth was probed and succeeded."""
     return _sigv4_fes_available is True
+
+
+def set_sigv4_profile(origin: str, region: str) -> None:
+    """Store the discovered SigV4 profile origin and region."""
+    global _sigv4_origin, _sigv4_region
+    _sigv4_origin = origin
+    _sigv4_region = region
+
+
+def get_sigv4_origin() -> str | None:
+    """Return the stored SigV4 origin, or None if not discovered."""
+    return _sigv4_origin
+
+
+def get_sigv4_region() -> str | None:
+    """Return the stored SigV4 region, or None if not discovered."""
+    return _sigv4_region
+
+
+def set_sigv4_profiles(profiles: list) -> None:
+    """Store discovered SigV4 profiles for deferred selection."""
+    global _sigv4_profiles
+    _sigv4_profiles = profiles
+
+
+def get_sigv4_profiles() -> list | None:
+    """Return discovered SigV4 profiles, or None if not discovered."""
+    return _sigv4_profiles
 
 
 def is_fes_available() -> bool:
