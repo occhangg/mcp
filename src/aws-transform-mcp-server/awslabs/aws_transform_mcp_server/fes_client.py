@@ -51,11 +51,11 @@ FESOperation = str
 
 
 class ProfileSelectionRequired(Exception):
-    """Raised when SigV4 FES has multiple profiles and none is selected."""
+    """Raised when SigV4 FES has multiple regions and none is selected."""
 
-    def __init__(self, profiles: list) -> None:  # noqa: D107
-        self.profiles = profiles
-        super().__init__('Multiple profiles found. Please choose one.')
+    def __init__(self, regions: list) -> None:  # noqa: D107
+        self.regions = regions
+        super().__init__('Multiple regions available. Please choose one.')
 
 
 # ── boto3 client helpers ────────────────────────────────────────────────
@@ -126,15 +126,6 @@ def _inject_cookie_auth(client, origin: str, cookie: str):
     client.meta.events.register('before-call.elasticgumbyfrontend.*', add_headers)
 
 
-def _inject_origin(client, origin: str):
-    """Register event handler to inject Origin header on every request."""
-
-    def add_origin(params, **kwargs):
-        params['headers']['Origin'] = origin
-
-    client.meta.events.register('before-call.elasticgumbyfrontend.*', add_origin)
-
-
 def _inject_bearer_auth(client, token: str, origin: Optional[str] = None):
     """Register event handler to inject bearer auth headers on every request."""
 
@@ -181,7 +172,6 @@ async def call_fes_direct_sigv4(
     timeout_seconds: float = TIMEOUT_SECONDS,
     max_retries: int = MAX_RETRIES,
     region: Optional[str] = None,
-    origin: Optional[str] = None,
 ) -> Any:
     """Direct FES call with SigV4 auth from boto3 credentials."""
     if region is None:
@@ -190,8 +180,6 @@ async def call_fes_direct_sigv4(
     client = _create_sigv4_client(
         endpoint, region=region, max_retries=max_retries, timeout=timeout_seconds
     )
-    if origin:
-        _inject_origin(client, origin)
     return await asyncio.to_thread(_call_boto3, client, operation, body or {})
 
 
@@ -312,23 +300,17 @@ async def call_fes(
     config = config_store.get_config()
     if config is None:
         if config_store.is_sigv4_fes_available():
-            origin = config_store.get_sigv4_origin()
-            logger.info(
-                'call_fes SigV4 path: origin={}, region={}',
-                origin,
-                config_store.get_sigv4_region(),
-            )
-            if origin is None:
-                profiles = config_store.get_sigv4_profiles()
-                raise ProfileSelectionRequired(profiles or [])
-            region = config_store.get_sigv4_region() or 'us-east-1'
+            region = config_store.get_sigv4_region()
+            logger.info('call_fes SigV4 path: region={}', region)
+            if region is None:
+                regions = config_store.get_sigv4_regions()
+                raise ProfileSelectionRequired(regions or [])
             endpoint = config_store.derive_fes_endpoint(region)
             return await call_fes_direct_sigv4(
                 endpoint,
                 operation,
                 body,
                 region=region,
-                origin=origin,
             )
         raise RuntimeError('Not configured. Call configure first.')
 

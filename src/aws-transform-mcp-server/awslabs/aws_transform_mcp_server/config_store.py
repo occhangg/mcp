@@ -335,9 +335,8 @@ class ConfigStore:
 _default_store = ConfigStore()
 
 _sigv4_fes_available: bool | None = None
-_sigv4_origin: str | None = None
 _sigv4_region: str | None = None
-_sigv4_profiles: list | None = None
+_sigv4_regions: list | None = None
 
 
 def set_sigv4_fes_available(available: bool) -> None:
@@ -351,32 +350,26 @@ def is_sigv4_fes_available() -> bool:
     return _sigv4_fes_available is True
 
 
-def set_sigv4_profile(origin: str, region: str) -> None:
-    """Store the discovered SigV4 profile origin and region."""
-    global _sigv4_origin, _sigv4_region
-    _sigv4_origin = origin
+def set_sigv4_region(region: str) -> None:
+    """Store the selected SigV4 region."""
+    global _sigv4_region
     _sigv4_region = region
 
 
-def get_sigv4_origin() -> str | None:
-    """Return the stored SigV4 origin, or None if not discovered."""
-    return _sigv4_origin
-
-
 def get_sigv4_region() -> str | None:
-    """Return the stored SigV4 region, or None if not discovered."""
+    """Return the stored SigV4 region, or None if not selected."""
     return _sigv4_region
 
 
-def set_sigv4_profiles(profiles: list) -> None:
-    """Store discovered SigV4 profiles for deferred selection."""
-    global _sigv4_profiles
-    _sigv4_profiles = profiles
+def set_sigv4_regions(regions: list) -> None:
+    """Store discovered SigV4 regions for deferred selection."""
+    global _sigv4_regions
+    _sigv4_regions = regions
 
 
-def get_sigv4_profiles() -> list | None:
-    """Return discovered SigV4 profiles, or None if not discovered."""
-    return _sigv4_profiles
+def get_sigv4_regions() -> list | None:
+    """Return discovered SigV4 regions, or None if not discovered."""
+    return _sigv4_regions
 
 
 def is_fes_available() -> bool:
