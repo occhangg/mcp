@@ -25,6 +25,7 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     error_result,
     failure_result,
     format_job_response,
+    not_configured_error,
     success_result,
 )
 from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
@@ -46,10 +47,6 @@ from mcp.server.fastmcp import Context
 from pydantic import Field
 from typing import Annotated, Any, Dict, List, Literal, Optional
 
-
-_NOT_CONFIGURED_CODE = 'NOT_CONFIGURED'
-_NOT_CONFIGURED_MSG = 'Not connected to AWS Transform.'
-_NOT_CONFIGURED_ACTION = 'Call configure with authMode "cookie" or "sso".'
 
 _POLL_INTERVAL = 3  # seconds between GetJob polls
 _POLL_MAX_WAIT = 90  # max seconds to wait for job to exit ASSESSING
@@ -97,7 +94,7 @@ class JobHandler:
         available agents before creating a job.
         """
         if not is_fes_available():
-            return error_result(_NOT_CONFIGURED_CODE, _NOT_CONFIGURED_MSG, _NOT_CONFIGURED_ACTION)
+            return not_configured_error()
 
         try:
             create_req = CreateJobRequest(
@@ -203,7 +200,7 @@ class JobHandler:
     ) -> dict:
         """Start or stop a transformation job."""
         if not is_fes_available():
-            return error_result(_NOT_CONFIGURED_CODE, _NOT_CONFIGURED_MSG, _NOT_CONFIGURED_ACTION)
+            return not_configured_error()
 
         try:
             if action == 'start':
@@ -233,7 +230,7 @@ class JobHandler:
     ) -> dict:
         """Permanently delete a transformation job."""
         if not is_fes_available():
-            return error_result(_NOT_CONFIGURED_CODE, _NOT_CONFIGURED_MSG, _NOT_CONFIGURED_ACTION)
+            return not_configured_error()
 
         if not confirm:
             return error_result(

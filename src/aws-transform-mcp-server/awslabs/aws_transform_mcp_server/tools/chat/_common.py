@@ -16,7 +16,6 @@
 
 import asyncio
 import uuid
-from awslabs.aws_transform_mcp_server.tool_utils import error_result
 from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 from awslabs.aws_transform_mcp_server.transform_api_models import (
     BatchGetMessageRequest,
@@ -27,12 +26,8 @@ from awslabs.aws_transform_mcp_server.transform_api_models import (
     SendMessageRequest,
     WorkspaceMetadata,
 )
-from typing import Any, Dict, Optional, TypedDict
+from typing import Dict, Optional, TypedDict
 
-
-NOT_CONFIGURED_CODE = 'NOT_CONFIGURED'
-NOT_CONFIGURED_MSG = 'Not connected to AWS Transform.'
-NOT_CONFIGURED_ACTION = 'Call configure with authMode "cookie" or "sso".'
 
 POLL_INTERVAL_SECS = 2
 
@@ -43,11 +38,6 @@ class PollResult(TypedDict):
     terminal: Optional[Dict]
     is_error: bool
     last_thinking: Optional[Dict]
-
-
-def not_configured_error() -> Dict[str, Any]:
-    """Return a standard not-configured error result."""
-    return error_result(NOT_CONFIGURED_CODE, NOT_CONFIGURED_MSG, NOT_CONFIGURED_ACTION)
 
 
 def build_metadata(workspaceId: str, jobId: Optional[str] = None) -> Metadata:

@@ -27,6 +27,7 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     MUTATE,
     error_result,
     failure_result,
+    not_configured_error,
     success_result,
 )
 from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
@@ -39,11 +40,6 @@ from awslabs.aws_transform_mcp_server.transform_api_models import (
 from mcp.server.fastmcp import Context
 from pydantic import Field
 from typing import Annotated, Any, Optional
-
-
-_NOT_CONFIGURED_CODE = 'NOT_CONFIGURED'
-_NOT_CONFIGURED_MSG = 'Transform connection not configured.'
-_NOT_CONFIGURED_ACTION = 'Call "configure" first.'
 
 
 def _build_verification_link(
@@ -110,7 +106,7 @@ class ConnectorHandler:
         Requires browser/SSO auth.
         """
         if not is_fes_available():
-            return error_result(_NOT_CONFIGURED_CODE, _NOT_CONFIGURED_MSG, _NOT_CONFIGURED_ACTION)
+            return not_configured_error()
 
         try:
             create_req = CreateConnectorRequest(
@@ -194,11 +190,7 @@ class ConnectorHandler:
         Requires both AWS credentials (auto-detected) and browser/SSO auth.
         """
         if not is_fes_available():
-            return error_result(
-                _NOT_CONFIGURED_CODE,
-                _NOT_CONFIGURED_MSG,
-                _NOT_CONFIGURED_ACTION,
-            )
+            return not_configured_error()
 
         session = AwsHelper.create_session()
         if session.get_credentials() is None:

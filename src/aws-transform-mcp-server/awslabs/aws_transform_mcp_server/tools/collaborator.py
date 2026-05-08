@@ -20,6 +20,7 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     DELETE_IDEMPOTENT,
     error_result,
     failure_result,
+    not_configured_error,
     success_result,
 )
 from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
@@ -31,11 +32,6 @@ from awslabs.aws_transform_mcp_server.transform_api_models import (
 from mcp.server.fastmcp import Context
 from pydantic import Field
 from typing import Annotated, Any, Dict, Literal, Optional
-
-
-_NOT_CONFIGURED_CODE = 'NOT_CONFIGURED'
-_NOT_CONFIGURED_MSG = 'Not connected to AWS Transform.'
-_NOT_CONFIGURED_ACTION = 'Call configure with authMode "cookie" or "sso".'
 
 
 class CollaboratorHandler:
@@ -91,7 +87,7 @@ class CollaboratorHandler:
         Requires configure (cookie or sso).
         """
         if not is_fes_available():
-            return error_result(_NOT_CONFIGURED_CODE, _NOT_CONFIGURED_MSG, _NOT_CONFIGURED_ACTION)
+            return not_configured_error()
 
         try:
             if action == 'put':

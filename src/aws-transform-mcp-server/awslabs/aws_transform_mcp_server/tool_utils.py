@@ -215,6 +215,15 @@ def failure_result(error: Exception, hint: Optional[str] = None) -> Dict[str, An
     return text_result(result, is_error=True)
 
 
+def not_configured_error() -> Dict[str, Any]:
+    """Return the standard NOT_CONFIGURED error result."""
+    return error_result(
+        'NOT_CONFIGURED',
+        'Not connected to AWS Transform.',
+        'Call configure with authMode "cookie" or "sso".',
+    )
+
+
 # ── S3 download helper ───────────────────────────────────────────────────
 
 

@@ -24,6 +24,7 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     READ_ONLY,
     error_result,
     failure_result,
+    not_configured_error,
     success_result,
 )
 from awslabs.aws_transform_mcp_server.tools.chat._common import (
@@ -122,11 +123,7 @@ class JobStatusHandler:
     ) -> Dict[str, Any]:
         """Fetch job status — concise assistant summary by default, full snapshot when detailed."""
         if not is_fes_available():
-            return error_result(
-                'NOT_CONFIGURED',
-                'Not connected to AWS Transform.',
-                'Call configure with authMode "cookie" or "sso".',
-            )
+            return not_configured_error()
 
         nudge = job_needs_check(jobId)
         if nudge:

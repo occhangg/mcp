@@ -29,6 +29,7 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     format_message_summary,
     format_task_summary,
     format_worklog,
+    not_configured_error,
     success_result,
 )
 from awslabs.aws_transform_mcp_server.transform_api_client import (
@@ -53,18 +54,6 @@ from loguru import logger
 from mcp.server.fastmcp import Context
 from pydantic import Field
 from typing import Annotated, Any, Callable, Dict, Optional
-
-
-# ── Constants ──────────────────────────────────────────────────────────────
-
-
-def NOT_CONFIGURED() -> Dict[str, Any]:
-    """Return error result for unconfigured state."""
-    return error_result(
-        'NOT_CONFIGURED',
-        'Not connected to AWS Transform.',
-        'Call configure with authMode "cookie" or "sso".',
-    )
 
 
 # ── Enum types ─────────────────────────────────────────────────────────────
@@ -392,7 +381,7 @@ class ListResourcesHandler:
         """List AWS Transform resources by type."""
         # ── All resources: FES ─────────────────────────────────────────────
         if not is_fes_available():
-            return NOT_CONFIGURED()
+            return not_configured_error()
 
         # Nudge: if a jobId is provided but load_instructions hasn't been called for it
         nudge = job_needs_check(jobId)
