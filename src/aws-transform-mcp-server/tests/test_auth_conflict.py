@@ -134,6 +134,33 @@ class TestCallTransformApiAuthConflict:  # noqa: D101
                 assert exc_info.value.status_code == 403
 
 
+class TestDeletePersistedConfig:  # noqa: D101
+    def test_deletes_config_file(self):
+        import os
+        import tempfile
+        from awslabs.aws_transform_mcp_server.config_store import ConfigStore
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            store = ConfigStore(config_dir=tmpdir)
+            config_file = os.path.join(tmpdir, 'config.json')
+            with open(config_file, 'w') as f:
+                f.write('{}')
+            os.chmod(config_file, 0o600)
+            assert os.path.exists(config_file)
+
+            store.delete_persisted_config()
+
+            assert not os.path.exists(config_file)
+
+    def test_no_error_when_file_missing(self):
+        import tempfile
+        from awslabs.aws_transform_mcp_server.config_store import ConfigStore
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            store = ConfigStore(config_dir=tmpdir)
+            store.delete_persisted_config()
+
+
 class TestFailureResultAuthConflict:  # noqa: D101
     def test_returns_structured_choice_on_auth_conflict(self):
         import json
