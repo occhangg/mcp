@@ -132,3 +132,26 @@ class TestCallTransformApiAuthConflict:  # noqa: D101
                     await call_transform_api('ListWorkspaces', {})
 
                 assert exc_info.value.status_code == 403
+
+
+class TestFailureResultAuthConflict:  # noqa: D101
+    def test_returns_structured_choice_on_auth_conflict(self):
+        import json
+        from awslabs.aws_transform_mcp_server.tool_utils import failure_result
+
+        exc = AuthConflict(
+            failed_method='bearer',
+            available_methods=['sigv4'],
+            original_error='HTTP 403: Invalid request origin',
+        )
+        result = failure_result(exc)
+        parsed = json.loads(result['content'][0]['text'])
+
+        assert parsed['success'] is False
+        assert parsed['error']['code'] == 'AUTH_CONFLICT'
+        assert 'Invalid request origin' in parsed['error']['message']
+        assert 'suggestedAction' in parsed['error']
+        assert 'configure' in parsed['error']['suggestedAction']
+        assert parsed['failedMethod'] == 'bearer'
+        assert 'sigv4' in parsed['availableMethods']
+        assert result['isError'] is True
