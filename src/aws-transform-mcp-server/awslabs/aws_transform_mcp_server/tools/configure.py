@@ -23,6 +23,7 @@ from awslabs.aws_transform_mcp_server.config_store import (
     build_bearer_config,
     build_cookie_config,
     clear_config,
+    delete_persisted_config,
     derive_transform_api_endpoint,
     extract_region_from_origin,
     get_config,
@@ -216,7 +217,8 @@ class ConfigureHandler:
                 description=(
                     'Authentication method. '
                     '"cookie" — requires: origin, sessionCookie. '
-                    '"sso" — requires: startUrl, idcRegion. Opens a browser for login.'
+                    '"sso" — requires: startUrl, idcRegion. Opens a browser for login. '
+                    '"reset" — clears saved session and switches to AWS credential auth if available.'
                 ),
             ),
         ],
@@ -282,6 +284,35 @@ class ConfigureHandler:
 
         [CRITICAL] SSO mode opens the user's default browser. Ensure the user expects this.
         """
+        # ── Reset ───────────────────────────────────────────────────────
+        if authMode == 'reset':
+            from awslabs.aws_transform_mcp_server.server import _probe_sigv4_transform_api
+
+            delete_persisted_config()
+            await _probe_sigv4_transform_api()
+            if is_sigv4_fes_available():
+                region = get_sigv4_region()
+                return text_result(
+                    {
+                        'success': True,
+                        'message': (
+                            f'Session cleared. Switched to AWS credential auth (region: {region}).'
+                        ),
+                        'authMode': 'sigv4',
+                        'region': region,
+                    },
+                )
+            return text_result(
+                {
+                    'success': True,
+                    'message': (
+                        'Session cleared. No AWS credentials detected. '
+                        'Use configure(authMode="sso") to authenticate, or set '
+                        'AWS_PROFILE in the MCP client env block and restart.'
+                    ),
+                },
+            )
+
         # ── Cookie auth ─────────────────────────────────────────────────
         if authMode == 'cookie':
             if not sessionCookie:

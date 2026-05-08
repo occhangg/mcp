@@ -1,7 +1,7 @@
 import pytest
 from awslabs.aws_transform_mcp_server.http_utils import HttpError
 from awslabs.aws_transform_mcp_server.transform_api_client import AuthConflict
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 
 class TestAuthConflict:  # noqa: D101
@@ -159,6 +159,66 @@ class TestDeletePersistedConfig:  # noqa: D101
         with tempfile.TemporaryDirectory() as tmpdir:
             store = ConfigStore(config_dir=tmpdir)
             store.delete_persisted_config()
+
+
+class TestConfigureReset:  # noqa: D101
+    @pytest.mark.asyncio
+    async def test_reset_clears_config_and_reports_sigv4(self):
+        import json
+        from awslabs.aws_transform_mcp_server.tools.configure import ConfigureHandler
+
+        handler = ConfigureHandler(MagicMock())
+        ctx = MagicMock()
+
+        with (
+            patch(
+                'awslabs.aws_transform_mcp_server.tools.configure.delete_persisted_config'
+            ) as mock_delete,
+            patch(
+                'awslabs.aws_transform_mcp_server.server._probe_sigv4_transform_api',
+                new_callable=AsyncMock,
+            ),
+            patch(
+                'awslabs.aws_transform_mcp_server.tools.configure.is_sigv4_fes_available',
+                return_value=True,
+            ),
+            patch(
+                'awslabs.aws_transform_mcp_server.tools.configure.get_sigv4_region',
+                return_value='us-east-1',
+            ),
+        ):
+            result = await handler.configure(ctx, authMode='reset')
+
+        mock_delete.assert_called_once()
+        parsed = json.loads(result['content'][0]['text'])
+        assert parsed['success'] is True
+        assert 'cleared' in parsed['message'].lower()
+        assert parsed['authMode'] == 'sigv4'
+
+    @pytest.mark.asyncio
+    async def test_reset_no_creds_reports_instructions(self):
+        import json
+        from awslabs.aws_transform_mcp_server.tools.configure import ConfigureHandler
+
+        handler = ConfigureHandler(MagicMock())
+        ctx = MagicMock()
+
+        with (
+            patch('awslabs.aws_transform_mcp_server.tools.configure.delete_persisted_config'),
+            patch(
+                'awslabs.aws_transform_mcp_server.server._probe_sigv4_transform_api',
+                new_callable=AsyncMock,
+            ),
+            patch(
+                'awslabs.aws_transform_mcp_server.tools.configure.is_sigv4_fes_available',
+                return_value=False,
+            ),
+        ):
+            result = await handler.configure(ctx, authMode='reset')
+
+        parsed = json.loads(result['content'][0]['text'])
+        assert parsed['success'] is True
+        assert 'no aws credentials' in parsed['message'].lower()
 
 
 class TestFailureResultAuthConflict:  # noqa: D101
