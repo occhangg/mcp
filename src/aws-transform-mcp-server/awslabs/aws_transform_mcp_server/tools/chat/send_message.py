@@ -30,7 +30,7 @@ from awslabs.aws_transform_mcp_server.tools.chat._common import (
     not_configured_error,
     poll_for_response,
 )
-from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 from awslabs.aws_transform_mcp_server.transform_api_models import SendMessageRequest
 from mcp.server.fastmcp import Context
 from pydantic import Field
@@ -86,7 +86,7 @@ async def send_message(
         metadata = build_metadata(workspaceId, jobId)
         start_timestamp = time.time()
 
-        send_result = await call_fes(
+        send_result = await call_transform_api(
             'SendMessage',
             SendMessageRequest(
                 text=resolved_text,

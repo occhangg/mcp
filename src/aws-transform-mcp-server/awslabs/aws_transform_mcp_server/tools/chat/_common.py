@@ -17,7 +17,7 @@
 import asyncio
 import uuid
 from awslabs.aws_transform_mcp_server.tool_utils import error_result
-from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 from awslabs.aws_transform_mcp_server.transform_api_models import (
     BatchGetMessageRequest,
     ChatJobMetadata,
@@ -97,13 +97,13 @@ async def poll_for_response(
             startTimestamp=start_timestamp,
         )
 
-        list_result = await call_fes('ListMessages', list_req)
+        list_result = await call_transform_api('ListMessages', list_req)
         message_ids = list_result.get('messageIds', []) if isinstance(list_result, dict) else []
         new_ids = [mid for mid in message_ids if mid not in seen_ids]
         if not new_ids:
             continue
 
-        batch_result = await call_fes(
+        batch_result = await call_transform_api(
             'BatchGetMessage',
             BatchGetMessageRequest(messageIds=new_ids, workspaceId=workspaceId),
         )
@@ -197,7 +197,7 @@ async def send_and_poll(
     metadata = build_metadata(workspaceId, jobId)
     start_timestamp = time.time()
 
-    send_result = await call_fes(
+    send_result = await call_transform_api(
         'SendMessage',
         SendMessageRequest(
             text=text,

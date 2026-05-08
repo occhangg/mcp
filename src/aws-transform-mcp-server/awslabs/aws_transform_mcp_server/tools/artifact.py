@@ -31,7 +31,7 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     failure_result,
     success_result,
 )
-from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 from awslabs.aws_transform_mcp_server.transform_api_models import (
     ArtifactReference,
     ArtifactType,
@@ -157,7 +157,7 @@ class ArtifactHandler:
                 ),
             )
 
-            init_result = await call_fes('CreateArtifactUploadUrl', upload_req)
+            init_result = await call_transform_api('CreateArtifactUploadUrl', upload_req)
 
             # Flatten multi-value headers
             put_headers: Dict[str, str] = {}
@@ -191,7 +191,7 @@ class ArtifactHandler:
                     }
                 )
 
-            await call_fes(
+            await call_transform_api(
                 'CompleteArtifactUpload',
                 CompleteArtifactUploadRequest(
                     workspaceId=workspaceId,

@@ -29,7 +29,7 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     failure_result,
     success_result,
 )
-from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 from awslabs.aws_transform_mcp_server.transform_api_models import (
     AccountConnectionRequest,
     AwsAccountConnectionRequest,
@@ -128,11 +128,11 @@ class ConnectorHandler:
                 targetRegions=targetRegions,
             )
 
-            create_result = await call_fes('CreateConnector', create_req)
+            create_result = await call_transform_api('CreateConnector', create_req)
 
             connector_id = create_result['connectorId']
 
-            status = await call_fes(
+            status = await call_transform_api(
                 'GetConnector',
                 GetConnectorRequest(
                     workspaceId=workspaceId,
@@ -226,7 +226,7 @@ class ConnectorHandler:
                 },
             )
 
-            status = await call_fes(
+            status = await call_transform_api(
                 'GetConnector',
                 GetConnectorRequest(
                     workspaceId=workspaceId,

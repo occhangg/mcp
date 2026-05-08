@@ -46,7 +46,7 @@ def extract_region_from_origin(origin: str) -> str | None:
     return match.group(1) if match else None
 
 
-def derive_fes_endpoint(region: str) -> str:
+def derive_transform_api_endpoint(region: str) -> str:
     """Derive the Transform API endpoint for a given region.
 
     If the ``AWS_TRANSFORM_API_ENDPOINT`` environment variable is set, it is
@@ -106,7 +106,7 @@ def build_cookie_config(
     return ConnectionConfig(
         auth_mode='cookie',
         region=region,
-        fes_endpoint=derive_fes_endpoint(region),
+        fes_endpoint=derive_transform_api_endpoint(region),
         origin=origin.rstrip('/'),
         session_cookie=cookie,
     )
@@ -144,7 +144,7 @@ def build_bearer_config(
     return ConnectionConfig(
         auth_mode='bearer',
         region=region,
-        fes_endpoint=derive_fes_endpoint(region),
+        fes_endpoint=derive_transform_api_endpoint(region),
         origin=origin.rstrip('/'),
         bearer_token=bearer_token,
         refresh_token=refresh_token,

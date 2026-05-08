@@ -25,7 +25,7 @@ import hashlib
 import httpx
 import os
 from awslabs.aws_transform_mcp_server.file_validation import validate_read_path
-from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 from awslabs.aws_transform_mcp_server.transform_api_models import (
     ArtifactReference,
     ArtifactType,
@@ -80,7 +80,7 @@ async def upload_json_artifact(
     content_bytes = content.encode('utf-8')
     sha256_digest = base64.b64encode(hashlib.sha256(content_bytes).digest()).decode('ascii')
 
-    init_result = await call_fes(
+    init_result = await call_transform_api(
         'CreateArtifactUploadUrl',
         CreateArtifactUploadUrlRequest(
             workspaceId=workspace_id,
@@ -112,7 +112,7 @@ async def upload_json_artifact(
             error.body = body  # type: ignore[attr-defined]
             raise error
 
-    await call_fes(
+    await call_transform_api(
         'CompleteArtifactUpload',
         CompleteArtifactUploadRequest(
             workspaceId=workspace_id,
@@ -160,7 +160,7 @@ async def upload_file_artifact(
     file_name = os.path.basename(file_path)
     sha256_digest = base64.b64encode(hashlib.sha256(content_bytes).digest()).decode('ascii')
 
-    init_result = await call_fes(
+    init_result = await call_transform_api(
         'CreateArtifactUploadUrl',
         CreateArtifactUploadUrlRequest(
             workspaceId=workspace_id,
@@ -187,7 +187,7 @@ async def upload_file_artifact(
         if s3_response.status_code >= 400:
             raise Exception(f'Failed to upload file to storage (HTTP {s3_response.status_code}).')
 
-    await call_fes(
+    await call_transform_api(
         'CompleteArtifactUpload',
         CompleteArtifactUploadRequest(
             workspaceId=workspace_id,

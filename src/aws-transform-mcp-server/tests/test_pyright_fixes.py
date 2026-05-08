@@ -35,11 +35,11 @@ class TestCallFesNoneConfig:
 
     @pytest.mark.asyncio
     async def test_call_fes_raises_on_none_config(self):
-        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 
         with patch('awslabs.aws_transform_mcp_server.config_store.get_config', return_value=None):
             with pytest.raises(RuntimeError, match='[Nn]ot configured'):
-                await call_fes('ListWorkspaces')
+                await call_transform_api('ListWorkspaces')
 
     @pytest.mark.asyncio
     async def test_call_tcp_raises_on_none_config(self):

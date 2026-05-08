@@ -23,7 +23,7 @@ from awslabs.aws_transform_mcp_server.config_store import (
     build_bearer_config,
     build_cookie_config,
     clear_config,
-    derive_fes_endpoint,
+    derive_transform_api_endpoint,
     extract_region_from_origin,
     get_config,
     get_sigv4_region,
@@ -70,7 +70,7 @@ async def _discover_profiles(
 
     async def _call_region(region: str) -> List[Dict[str, Any]]:
         try:
-            endpoint = derive_fes_endpoint(region)
+            endpoint = derive_transform_api_endpoint(region)
             result = await asyncio.wait_for(
                 call_fes_direct_bearer(endpoint, access_token, 'ListAvailableProfiles'),
                 timeout=PROFILE_DISCOVERY_TIMEOUT_SECONDS,
@@ -372,7 +372,7 @@ class ConfigureHandler:
             )
 
             # Step 4: Verify session with selected profile
-            service_fes_endpoint = derive_fes_endpoint(service_region)
+            service_fes_endpoint = derive_transform_api_endpoint(service_region)
             session = await call_fes_direct_bearer(
                 service_fes_endpoint, tokens.access_token, 'VerifySession', {}, resolved_origin
             )
@@ -476,7 +476,7 @@ class ConfigureHandler:
         )
 
         # Verify session with selected profile
-        service_fes_endpoint = derive_fes_endpoint(service_region)
+        service_fes_endpoint = derive_transform_api_endpoint(service_region)
         try:
             session = await call_fes_direct_bearer(
                 service_fes_endpoint, config.bearer_token, 'VerifySession', {}, resolved_origin
@@ -586,7 +586,7 @@ class ConfigureHandler:
                     ),
                 },
                 'availableRegions': [
-                    {'region': r, 'endpoint': derive_fes_endpoint(r)} for r in available
+                    {'region': r, 'endpoint': derive_transform_api_endpoint(r)} for r in available
                 ],
             },
             is_error=True,
@@ -625,7 +625,7 @@ class ConfigureHandler:
                     'credential detection.',
                 }
                 return text_result(status, is_error=False)
-            fes_endpoint = derive_fes_endpoint(config.region or 'us-east-1')
+            fes_endpoint = derive_transform_api_endpoint(config.region or 'us-east-1')
             try:
                 if config.auth_mode == 'cookie':
                     result = await call_fes_direct_cookie(

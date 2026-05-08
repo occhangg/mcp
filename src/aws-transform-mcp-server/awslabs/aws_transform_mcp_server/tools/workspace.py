@@ -24,7 +24,7 @@ from awslabs.aws_transform_mcp_server.tool_utils import (
     failure_result,
     success_result,
 )
-from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 from awslabs.aws_transform_mcp_server.transform_api_models import (
     CreateWorkspaceRequest,
     DeleteWorkspaceRequest,
@@ -65,7 +65,7 @@ class WorkspaceHandler:
             return error_result(_NOT_CONFIGURED_CODE, _NOT_CONFIGURED_MSG, _NOT_CONFIGURED_ACTION)
 
         try:
-            result = await call_fes(
+            result = await call_transform_api(
                 'CreateWorkspace',
                 CreateWorkspaceRequest(
                     name=name,
@@ -100,7 +100,9 @@ class WorkspaceHandler:
             )
 
         try:
-            result = await call_fes('DeleteWorkspace', DeleteWorkspaceRequest(id=workspaceId))
+            result = await call_transform_api(
+                'DeleteWorkspace', DeleteWorkspaceRequest(id=workspaceId)
+            )
             data = {'deleted': True, 'workspaceId': workspaceId}
             if result and isinstance(result, dict):
                 data.update(result)

@@ -79,7 +79,7 @@ class TestCallFesSigv4Fallback:
     @pytest.mark.asyncio
     async def test_sigv4_fallback_success(self):
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 
         with (
             patch.object(config_store, 'get_config', return_value=None),
@@ -90,7 +90,7 @@ class TestCallFesSigv4Fallback:
         ):
             mock_sigv4.return_value = {'items': []}
 
-            result = await call_fes('ListWorkspaces')
+            result = await call_transform_api('ListWorkspaces')
 
         assert result == {'items': []}
         mock_sigv4.assert_called_once_with(
@@ -104,7 +104,7 @@ class TestCallFesSigv4Fallback:
     async def test_sigv4_fallback_region_selection_required(self):
         """When region is not set but regions exist, raises ProfileSelectionRequired."""
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 
         regions = ['us-east-1', 'eu-central-1']
 
@@ -115,7 +115,7 @@ class TestCallFesSigv4Fallback:
             patch.object(config_store, 'get_sigv4_regions', return_value=regions),
         ):
             with pytest.raises(ProfileSelectionRequired) as exc_info:
-                await call_fes('ListWorkspaces')
+                await call_transform_api('ListWorkspaces')
 
         assert exc_info.value.regions == regions
 
@@ -123,7 +123,7 @@ class TestCallFesSigv4Fallback:
     async def test_sigv4_fallback_auth_failure_does_not_disable(self):
         """401/403 should NOT disable sigv4_fes — credentials are transient."""
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 
         with (
             patch.object(config_store, 'get_config', return_value=None),
@@ -138,7 +138,7 @@ class TestCallFesSigv4Fallback:
             ),
         ):
             with pytest.raises(HttpError):
-                await call_fes('ListWorkspaces')
+                await call_transform_api('ListWorkspaces')
 
         mock_set.assert_not_called()
 
@@ -146,7 +146,7 @@ class TestCallFesSigv4Fallback:
     async def test_sigv4_fallback_transient_error_does_not_disable(self):
         """500/503 should NOT set sigv4_fes_available to False."""
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 
         with (
             patch.object(config_store, 'get_config', return_value=None),
@@ -161,7 +161,7 @@ class TestCallFesSigv4Fallback:
             ),
         ):
             with pytest.raises(HttpError):
-                await call_fes('ListWorkspaces')
+                await call_transform_api('ListWorkspaces')
 
         mock_set.assert_not_called()
 
@@ -169,7 +169,7 @@ class TestCallFesSigv4Fallback:
     async def test_sigv4_fallback_non_http_error_does_not_disable(self):
         """Non-HttpError exceptions should NOT disable SigV4."""
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 
         with (
             patch.object(config_store, 'get_config', return_value=None),
@@ -184,7 +184,7 @@ class TestCallFesSigv4Fallback:
             ),
         ):
             with pytest.raises(RuntimeError):
-                await call_fes('ListWorkspaces')
+                await call_transform_api('ListWorkspaces')
 
         mock_set.assert_not_called()
 
@@ -192,7 +192,7 @@ class TestCallFesSigv4Fallback:
     async def test_explicit_config_supersedes_sigv4(self):
         """When SSO/cookie config exists, SigV4 path is never used."""
         from awslabs.aws_transform_mcp_server import config_store
-        from awslabs.aws_transform_mcp_server.transform_api_client import call_fes
+        from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
 
         mock_config = MagicMock()
         mock_config.auth_mode = 'bearer'
@@ -210,7 +210,7 @@ class TestCallFesSigv4Fallback:
             patch(f'{_FES_MOD}.asyncio.to_thread', new_callable=AsyncMock) as mock_thread,
         ):
             mock_thread.return_value = {'items': []}
-            await call_fes('ListWorkspaces')
+            await call_transform_api('ListWorkspaces')
 
         mock_sigv4.assert_not_called()
 
@@ -223,7 +223,7 @@ class TestProbeSigv4Fes:
 
     @pytest.mark.asyncio
     async def test_no_credentials(self):
-        from awslabs.aws_transform_mcp_server.server import _probe_sigv4_fes
+        from awslabs.aws_transform_mcp_server.server import _probe_sigv4_transform_api
 
         mock_session = MagicMock()
         mock_session.get_credentials.return_value = None
@@ -233,13 +233,13 @@ class TestProbeSigv4Fes:
             patch(f'{_SERVER_MOD}.set_sigv4_fes_available') as mock_set,
         ):
             mock_helper.create_session.return_value = mock_session
-            await _probe_sigv4_fes()
+            await _probe_sigv4_transform_api()
 
         mock_set.assert_called_once_with(False)
 
     @pytest.mark.asyncio
     async def test_single_region_auto_selects(self):
-        from awslabs.aws_transform_mcp_server.server import _probe_sigv4_fes
+        from awslabs.aws_transform_mcp_server.server import _probe_sigv4_transform_api
 
         mock_session = MagicMock()
         mock_session.get_credentials.return_value = MagicMock()
@@ -252,14 +252,14 @@ class TestProbeSigv4Fes:
         ):
             mock_helper.create_session.return_value = mock_session
             mock_disc.return_value = ['us-east-1']
-            await _probe_sigv4_fes()
+            await _probe_sigv4_transform_api()
 
         mock_set_available.assert_called_once_with(True)
         mock_set_region.assert_called_once_with('us-east-1')
 
     @pytest.mark.asyncio
     async def test_multiple_regions_stores_list(self):
-        from awslabs.aws_transform_mcp_server.server import _probe_sigv4_fes
+        from awslabs.aws_transform_mcp_server.server import _probe_sigv4_transform_api
 
         mock_session = MagicMock()
         mock_session.get_credentials.return_value = MagicMock()
@@ -273,7 +273,7 @@ class TestProbeSigv4Fes:
         ):
             mock_helper.create_session.return_value = mock_session
             mock_disc.return_value = ['us-east-1', 'eu-central-1']
-            await _probe_sigv4_fes()
+            await _probe_sigv4_transform_api()
 
         mock_set_available.assert_called_once_with(True)
         mock_set_region.assert_not_called()
@@ -281,7 +281,7 @@ class TestProbeSigv4Fes:
 
     @pytest.mark.asyncio
     async def test_no_regions_disables(self):
-        from awslabs.aws_transform_mcp_server.server import _probe_sigv4_fes
+        from awslabs.aws_transform_mcp_server.server import _probe_sigv4_transform_api
 
         mock_session = MagicMock()
         mock_session.get_credentials.return_value = MagicMock()
@@ -293,7 +293,7 @@ class TestProbeSigv4Fes:
         ):
             mock_helper.create_session.return_value = mock_session
             mock_disc.return_value = []
-            await _probe_sigv4_fes()
+            await _probe_sigv4_transform_api()
 
         mock_set.assert_called_once_with(False)
 
@@ -342,7 +342,11 @@ class TestDeriveFesEndpointValidation:
     """Tests for derive_fes_endpoint."""
 
     def test_returns_correct_url(self):
-        from awslabs.aws_transform_mcp_server.config_store import derive_fes_endpoint
+        from awslabs.aws_transform_mcp_server.config_store import derive_transform_api_endpoint
 
-        assert derive_fes_endpoint('us-east-1') == 'https://api.transform.us-east-1.on.aws/'
-        assert derive_fes_endpoint('us-west-2') == 'https://api.transform.us-west-2.on.aws/'
+        assert (
+            derive_transform_api_endpoint('us-east-1') == 'https://api.transform.us-east-1.on.aws/'
+        )
+        assert (
+            derive_transform_api_endpoint('us-west-2') == 'https://api.transform.us-west-2.on.aws/'
+        )

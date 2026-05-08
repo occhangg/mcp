@@ -25,7 +25,7 @@ import sys
 from awslabs.aws_transform_mcp_server.aws_helper import AwsHelper
 from awslabs.aws_transform_mcp_server.config_store import (
     clear_config,
-    derive_fes_endpoint,
+    derive_transform_api_endpoint,
     load_persisted_config,
     set_sigv4_fes_available,
     set_sigv4_region,
@@ -166,10 +166,10 @@ async def _startup() -> None:
     loaded = await load_persisted_config()
     if not loaded:
         clear_config()
-        await _probe_sigv4_fes()
+        await _probe_sigv4_transform_api()
 
 
-async def _probe_sigv4_fes() -> None:
+async def _probe_sigv4_transform_api() -> None:
     """Probe credential auth by fanning out ListWorkspaces across all regions.
 
     If exactly one region succeeds, auto-selects it (zero-config).
@@ -224,7 +224,7 @@ async def _discover_sigv4_regions() -> list[str]:
 
     async def _call_region(region: str) -> str | None:
         try:
-            endpoint = derive_fes_endpoint(region)
+            endpoint = derive_transform_api_endpoint(region)
             logger.info('Region discovery: calling {} for region {}', endpoint, region)
             await asyncio.wait_for(
                 call_fes_direct_sigv4(

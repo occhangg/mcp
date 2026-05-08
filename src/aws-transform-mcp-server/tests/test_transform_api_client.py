@@ -20,9 +20,9 @@ import time
 from awslabs.aws_transform_mcp_server.http_utils import HttpError
 from awslabs.aws_transform_mcp_server.models import ConnectionConfig, RefreshedTokens
 from awslabs.aws_transform_mcp_server.transform_api_client import (
-    call_fes,
     call_fes_direct_bearer,
     call_fes_direct_cookie,
+    call_transform_api,
 )
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -143,7 +143,7 @@ class TestCallFes:
         with patch(
             'awslabs.aws_transform_mcp_server.config_store.get_config', return_value=config
         ):
-            result = await call_fes('ListWorkspaces')
+            result = await call_transform_api('ListWorkspaces')
 
         assert result == {'data': 'ok'}
         mock_inject.assert_called_once_with(
@@ -161,7 +161,7 @@ class TestCallFes:
         with patch(
             'awslabs.aws_transform_mcp_server.config_store.get_config', return_value=config
         ):
-            result = await call_fes('GetJob', {'jobId': '123'})
+            result = await call_transform_api('GetJob', {'jobId': '123'})
 
         assert result == {'data': 'ok'}
         mock_inject.assert_called_once_with(
@@ -190,7 +190,7 @@ class TestCallFes:
             patch('awslabs.aws_transform_mcp_server.config_store.persist_config') as mock_persist,
             patch('awslabs.aws_transform_mcp_server.oauth.refresh_access_token', mock_refresh),
         ):
-            result = await call_fes('ListJobs')
+            result = await call_transform_api('ListJobs')
 
         assert result == {'data': 'refreshed'}
         mock_refresh.assert_called_once()
@@ -209,7 +209,7 @@ class TestCallFes:
             'awslabs.aws_transform_mcp_server.config_store.get_config', return_value=config
         ):
             with pytest.raises(RuntimeError, match='Client registration expired'):
-                await call_fes('ListJobs')
+                await call_transform_api('ListJobs')
 
     @patch(f'{_MOD}._call_boto3', side_effect=HttpError(400, {'message': 'bad'}, 'HTTP 400: bad'))
     @patch(f'{_MOD}._inject_cookie_auth')
@@ -222,7 +222,7 @@ class TestCallFes:
             'awslabs.aws_transform_mcp_server.config_store.get_config', return_value=config
         ):
             with pytest.raises(HttpError) as exc_info:
-                await call_fes('CreateJob', {'name': 'test'})
+                await call_transform_api('CreateJob', {'name': 'test'})
             assert exc_info.value.status_code == 400
 
     @patch(
@@ -238,7 +238,7 @@ class TestCallFes:
             'awslabs.aws_transform_mcp_server.config_store.get_config', return_value=config
         ):
             with pytest.raises(HttpError) as exc_info:
-                await call_fes('GetWorkspace', {'workspaceId': '123'})
+                await call_transform_api('GetWorkspace', {'workspaceId': '123'})
             assert exc_info.value.status_code == 401
 
 
@@ -468,7 +468,7 @@ class TestCallFesWithPydanticBody:
         with patch(
             'awslabs.aws_transform_mcp_server.config_store.get_config', return_value=config
         ):
-            result = await call_fes('GetJob', req)
+            result = await call_transform_api('GetJob', req)
 
         assert result == {'data': 'ok'}
         call_body = mock_call.call_args[0][2]
