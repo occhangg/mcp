@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for SigV4 FES auth: probe, direct call, and call_fes fallback."""
+"""Tests for AWS credential auth: probe, direct call, and call_fes fallback."""
 
 import pytest
 from awslabs.aws_transform_mcp_server.http_utils import HttpError
