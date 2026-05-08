@@ -58,6 +58,19 @@ class ProfileSelectionRequired(Exception):
         super().__init__('Multiple regions available. Please choose one.')
 
 
+class AuthConflict(Exception):
+    """Raised when configured auth fails but alternative auth methods are available."""
+
+    def __init__(self, failed_method: str, available_methods: list, original_error: str) -> None:  # noqa: D107
+        self.failed_method = failed_method
+        self.available_methods = available_methods
+        self.original_error = original_error
+        super().__init__(
+            f'{failed_method} auth failed ({original_error}). '
+            f'Alternative auth available: {", ".join(available_methods)}.'
+        )
+
+
 # ── boto3 client helpers ────────────────────────────────────────────────
 
 
