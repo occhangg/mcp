@@ -344,7 +344,7 @@ class TestStartup:
             await _startup()
 
         mock_clear.assert_not_called()
-        mock_probe.assert_not_called()
+        mock_probe.assert_called_once()
 
 
 # ── derive_transform_api_endpoint validation ───────────────────────────────────────

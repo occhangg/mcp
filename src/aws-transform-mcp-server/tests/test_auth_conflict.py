@@ -242,3 +242,45 @@ class TestFailureResultAuthConflict:  # noqa: D101
         assert parsed['failedMethod'] == 'bearer'
         assert 'sigv4' in parsed['availableMethods']
         assert result['isError'] is True
+
+
+class TestAuthConflictEndToEnd:  # noqa: D101
+    @pytest.mark.asyncio
+    async def test_origin_403_with_creds_produces_structured_choice(self):
+        """Full flow: call_transform_api raises AuthConflict, failure_result formats it."""
+        import json
+        from awslabs.aws_transform_mcp_server.tool_utils import failure_result
+
+        mock_config = MagicMock()
+        mock_config.auth_mode = 'bearer'
+        mock_config.bearer_token = 'token'
+        mock_config.origin = 'https://tenant.transform.us-east-1.on.aws'
+        mock_config.region = 'us-east-1'
+        mock_config.token_expiry = 9999999999
+        mock_config.refresh_token = None
+
+        with (
+            patch('awslabs.aws_transform_mcp_server.transform_api_client.config_store') as mock_cs,
+            patch('awslabs.aws_transform_mcp_server.transform_api_client._create_unsigned_client'),
+            patch(
+                'awslabs.aws_transform_mcp_server.transform_api_client._call_boto3',
+                side_effect=HttpError(
+                    403, {'Message': 'Invalid request origin'}, 'HTTP 403: Invalid request origin'
+                ),
+            ),
+        ):
+            mock_cs.get_config.return_value = mock_config
+            mock_cs.is_sigv4_fes_available.return_value = True
+            mock_cs.get_sigv4_region.return_value = 'us-east-1'
+
+            from awslabs.aws_transform_mcp_server.transform_api_client import call_transform_api
+
+            with pytest.raises(AuthConflict) as exc_info:
+                await call_transform_api('ListWorkspaces', {})
+
+        result = failure_result(exc_info.value)
+        parsed = json.loads(result['content'][0]['text'])
+
+        assert parsed['error']['code'] == 'AUTH_CONFLICT'
+        assert 'configure' in parsed['error']['suggestedAction']
+        assert 'sigv4' in parsed['availableMethods']

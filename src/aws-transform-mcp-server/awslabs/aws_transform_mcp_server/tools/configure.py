@@ -778,13 +778,24 @@ class ConfigureHandler:
             }
 
         # ── AWS credential API status ──────────────────────────────────
+        if is_sigv4_fes_available():
+            sigv4_api_message = (
+                'AWS credential auth enabled — all API tools work without configure.'
+            )
+        elif status.get('sigv4', {}).get('configured'):
+            sigv4_api_message = (
+                'AWS credentials detected but your account does not have access to '
+                'the Transform API. Use configure(authMode="sso") to authenticate '
+                'with IAM Identity Center instead.'
+            )
+        else:
+            sigv4_api_message = (
+                'No AWS credentials detected. Set AWS_PROFILE in the MCP client env '
+                'block and restart, or use configure(authMode="sso") to authenticate.'
+            )
         status['sigv4AwsTransformAPI'] = {
             'available': is_sigv4_fes_available(),
-            'message': (
-                'AWS credential auth enabled — all API tools work without configure.'
-                if is_sigv4_fes_available()
-                else 'AWS credential auth not available. Use configure to connect.'
-            ),
+            'message': sigv4_api_message,
         }
 
         fes_status = status.get('connection', {})

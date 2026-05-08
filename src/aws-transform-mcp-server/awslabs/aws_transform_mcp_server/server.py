@@ -162,11 +162,11 @@ def _register_handlers(mcp: FastMCP) -> None:
 
 
 async def _startup() -> None:
-    """Load persisted config and probe API credential auth if needed."""
+    """Load persisted config and probe API credential auth unconditionally."""
     loaded = await load_persisted_config()
     if not loaded:
         clear_config()
-        await _probe_sigv4_transform_api()
+    await _probe_sigv4_transform_api()
 
 
 async def _probe_sigv4_transform_api() -> None:
