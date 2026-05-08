@@ -20,7 +20,7 @@ from awslabs.aws_transform_mcp_server.transform_api_client import paginate_all
 from unittest.mock import AsyncMock, patch
 
 
-_MOD = 'awslabs.aws_transform_mcp_server.fes_client'
+_MOD = 'awslabs.aws_transform_mcp_server.transform_api_client'
 
 
 class TestPaginateAll:

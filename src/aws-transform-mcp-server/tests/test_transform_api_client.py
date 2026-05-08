@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for fes_client: cookie/bearer modes, token refresh, errors (boto3-based)."""
+"""Tests for transform_api_client: cookie/bearer modes, token refresh, errors (boto3-based)."""
 # ruff: noqa: D101, D102, D103
 
 import pytest
@@ -27,7 +27,7 @@ from awslabs.aws_transform_mcp_server.transform_api_client import (
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
-_MOD = 'awslabs.aws_transform_mcp_server.fes_client'
+_MOD = 'awslabs.aws_transform_mcp_server.transform_api_client'
 
 
 # ── call_fes_direct_cookie ─────────────────────────────────────────────

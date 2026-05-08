@@ -20,7 +20,7 @@ from awslabs.aws_transform_mcp_server.transform_api_client import ProfileSelecti
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
-_FES_MOD = 'awslabs.aws_transform_mcp_server.fes_client'
+_FES_MOD = 'awslabs.aws_transform_mcp_server.transform_api_client'
 _SERVER_MOD = 'awslabs.aws_transform_mcp_server.server'
 
 
