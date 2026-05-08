@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for AWS credential auth: probe, direct call, and call_fes fallback."""
+"""Tests for AWS credential auth: probe, direct call, and call_transform_api fallback."""
 
 import pytest
 from awslabs.aws_transform_mcp_server.http_utils import HttpError
@@ -70,11 +70,11 @@ class TestCallFesSigv4:
                 )
 
 
-# ── call_fes SigV4 fallback ───────────────────────────────────────────────
+# ── call_transform_api SigV4 fallback ───────────────────────────────────────────────
 
 
 class TestCallFesSigv4Fallback:
-    """Tests for the SigV4 fallback path in call_fes."""
+    """Tests for the SigV4 fallback path in call_transform_api."""
 
     @pytest.mark.asyncio
     async def test_sigv4_fallback_success(self):
@@ -85,7 +85,9 @@ class TestCallFesSigv4Fallback:
             patch.object(config_store, 'get_config', return_value=None),
             patch.object(config_store, 'is_sigv4_fes_available', return_value=True),
             patch.object(config_store, 'get_sigv4_region', return_value='us-east-1'),
-            patch.object(config_store, 'derive_fes_endpoint', return_value='https://ep/'),
+            patch.object(
+                config_store, 'derive_transform_api_endpoint', return_value='https://ep/'
+            ),
             patch(f'{_FES_MOD}.call_fes_direct_sigv4', new_callable=AsyncMock) as mock_sigv4,
         ):
             mock_sigv4.return_value = {'items': []}
@@ -130,7 +132,9 @@ class TestCallFesSigv4Fallback:
             patch.object(config_store, 'is_sigv4_fes_available', return_value=True),
             patch.object(config_store, 'get_sigv4_region', return_value='us-east-1'),
             patch.object(config_store, 'set_sigv4_fes_available') as mock_set,
-            patch.object(config_store, 'derive_fes_endpoint', return_value='https://ep/'),
+            patch.object(
+                config_store, 'derive_transform_api_endpoint', return_value='https://ep/'
+            ),
             patch(
                 f'{_FES_MOD}.call_fes_direct_sigv4',
                 new_callable=AsyncMock,
@@ -153,7 +157,9 @@ class TestCallFesSigv4Fallback:
             patch.object(config_store, 'is_sigv4_fes_available', return_value=True),
             patch.object(config_store, 'get_sigv4_region', return_value='us-east-1'),
             patch.object(config_store, 'set_sigv4_fes_available') as mock_set,
-            patch.object(config_store, 'derive_fes_endpoint', return_value='https://ep/'),
+            patch.object(
+                config_store, 'derive_transform_api_endpoint', return_value='https://ep/'
+            ),
             patch(
                 f'{_FES_MOD}.call_fes_direct_sigv4',
                 new_callable=AsyncMock,
@@ -176,7 +182,9 @@ class TestCallFesSigv4Fallback:
             patch.object(config_store, 'is_sigv4_fes_available', return_value=True),
             patch.object(config_store, 'get_sigv4_region', return_value='us-east-1'),
             patch.object(config_store, 'set_sigv4_fes_available') as mock_set,
-            patch.object(config_store, 'derive_fes_endpoint', return_value='https://ep/'),
+            patch.object(
+                config_store, 'derive_transform_api_endpoint', return_value='https://ep/'
+            ),
             patch(
                 f'{_FES_MOD}.call_fes_direct_sigv4',
                 new_callable=AsyncMock,
@@ -215,7 +223,7 @@ class TestCallFesSigv4Fallback:
         mock_sigv4.assert_not_called()
 
 
-# ── _probe_sigv4_fes ──────────────────────────────────────────────────────
+# ── _probe_sigv4_transform_api ──────────────────────────────────────────────────────
 
 
 class TestProbeSigv4Fes:
@@ -311,7 +319,9 @@ class TestStartup:
         with (
             patch(f'{_SERVER_MOD}.load_persisted_config', new_callable=AsyncMock) as mock_load,
             patch(f'{_SERVER_MOD}.clear_config') as mock_clear,
-            patch(f'{_SERVER_MOD}._probe_sigv4_fes', new_callable=AsyncMock) as mock_probe,
+            patch(
+                f'{_SERVER_MOD}._probe_sigv4_transform_api', new_callable=AsyncMock
+            ) as mock_probe,
         ):
             mock_load.return_value = False
             await _startup()
@@ -326,7 +336,9 @@ class TestStartup:
         with (
             patch(f'{_SERVER_MOD}.load_persisted_config', new_callable=AsyncMock) as mock_load,
             patch(f'{_SERVER_MOD}.clear_config') as mock_clear,
-            patch(f'{_SERVER_MOD}._probe_sigv4_fes', new_callable=AsyncMock) as mock_probe,
+            patch(
+                f'{_SERVER_MOD}._probe_sigv4_transform_api', new_callable=AsyncMock
+            ) as mock_probe,
         ):
             mock_load.return_value = True
             await _startup()
@@ -335,11 +347,11 @@ class TestStartup:
         mock_probe.assert_not_called()
 
 
-# ── derive_fes_endpoint validation ───────────────────────────────────────
+# ── derive_transform_api_endpoint validation ───────────────────────────────────────
 
 
 class TestDeriveFesEndpointValidation:
-    """Tests for derive_fes_endpoint."""
+    """Tests for derive_transform_api_endpoint."""
 
     def test_returns_correct_url(self):
         from awslabs.aws_transform_mcp_server.config_store import derive_transform_api_endpoint

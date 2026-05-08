@@ -96,7 +96,7 @@ class TestCallFesDirectBearer:
         mock_inject.assert_called_once_with(mock_create.return_value, 'tok', None)
 
 
-# ── call_fes (with config routing and token refresh) ──────────────────
+# ── call_transform_api (with config routing and token refresh) ──────────────────
 
 
 class TestCallFes:
@@ -437,7 +437,7 @@ class TestCallFesDirectSigv4:
         assert mock_create.call_args[1]['region'] == 'eu-west-1'
 
 
-# ── call_fes with FESRequest body ─────────────────────────────────────
+# ── call_transform_api with FESRequest body ─────────────────────────────────────
 
 
 class TestCallFesWithPydanticBody:
