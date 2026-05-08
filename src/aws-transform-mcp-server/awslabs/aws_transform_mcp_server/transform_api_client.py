@@ -340,7 +340,24 @@ async def call_transform_api(
     else:
         _inject_bearer_auth(client, config.bearer_token or '', config.origin)
 
-    return await asyncio.to_thread(_call_boto3, client, operation, body)
+    try:
+        return await asyncio.to_thread(_call_boto3, client, operation, body)
+    except HttpError as exc:
+        if exc.status_code == 403 and 'Invalid request origin' in str(exc):
+            available = []
+            if config_store.is_sigv4_fes_available():
+                available.append('sigv4')
+            else:
+                session = AwsHelper.create_session()
+                if session.get_credentials() is not None:
+                    available.append('sigv4')
+            if available:
+                raise AuthConflict(
+                    failed_method=config.auth_mode,
+                    available_methods=available,
+                    original_error=str(exc),
+                ) from exc
+        raise
 
 
 async def _ensure_fresh_token(config: 'ConnectionConfig') -> 'ConnectionConfig':
