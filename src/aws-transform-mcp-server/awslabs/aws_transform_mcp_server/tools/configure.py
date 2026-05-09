@@ -302,14 +302,26 @@ class ConfigureHandler:
                         'region': region,
                     },
                 )
+            from awslabs.aws_transform_mcp_server.aws_helper import AwsHelper
+
+            session = AwsHelper.create_session()
+            has_creds = session.get_credentials() is not None
+            if has_creds:
+                message = (
+                    'Session cleared. AWS credentials were found but your account '
+                    'does not have access to the Transform API via IAM. '
+                    'Use configure(authMode="sso") to authenticate with IAM Identity Center.'
+                )
+            else:
+                message = (
+                    'Session cleared. No AWS credentials detected. '
+                    'Use configure(authMode="sso") to authenticate, or set '
+                    'AWS_PROFILE in the MCP client env block and restart.'
+                )
             return text_result(
                 {
                     'success': True,
-                    'message': (
-                        'Session cleared. No AWS credentials detected. '
-                        'Use configure(authMode="sso") to authenticate, or set '
-                        'AWS_PROFILE in the MCP client env block and restart.'
-                    ),
+                    'message': message,
                 },
             )
 

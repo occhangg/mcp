@@ -203,6 +203,9 @@ class TestConfigureReset:  # noqa: D101
         handler = ConfigureHandler(MagicMock())
         ctx = MagicMock()
 
+        mock_session = MagicMock()
+        mock_session.get_credentials.return_value = None
+
         with (
             patch('awslabs.aws_transform_mcp_server.tools.configure.delete_persisted_config'),
             patch(
@@ -213,12 +216,48 @@ class TestConfigureReset:  # noqa: D101
                 'awslabs.aws_transform_mcp_server.tools.configure.is_sigv4_fes_available',
                 return_value=False,
             ),
+            patch(
+                'awslabs.aws_transform_mcp_server.aws_helper.AwsHelper.create_session',
+                return_value=mock_session,
+            ),
         ):
             result = await handler.configure(ctx, authMode='reset')
 
         parsed = json.loads(result['content'][0]['text'])
         assert parsed['success'] is True
         assert 'no aws credentials' in parsed['message'].lower()
+
+    @pytest.mark.asyncio
+    async def test_reset_creds_exist_but_no_transform_access(self):
+        import json
+        from awslabs.aws_transform_mcp_server.tools.configure import ConfigureHandler
+
+        handler = ConfigureHandler(MagicMock())
+        ctx = MagicMock()
+
+        mock_session = MagicMock()
+        mock_session.get_credentials.return_value = MagicMock()
+
+        with (
+            patch('awslabs.aws_transform_mcp_server.tools.configure.delete_persisted_config'),
+            patch(
+                'awslabs.aws_transform_mcp_server.server._probe_sigv4_transform_api',
+                new_callable=AsyncMock,
+            ),
+            patch(
+                'awslabs.aws_transform_mcp_server.tools.configure.is_sigv4_fes_available',
+                return_value=False,
+            ),
+            patch(
+                'awslabs.aws_transform_mcp_server.aws_helper.AwsHelper.create_session',
+                return_value=mock_session,
+            ),
+        ):
+            result = await handler.configure(ctx, authMode='reset')
+
+        parsed = json.loads(result['content'][0]['text'])
+        assert parsed['success'] is True
+        assert 'does not have access' in parsed['message'].lower()
 
 
 class TestFailureResultAuthConflict:  # noqa: D101
