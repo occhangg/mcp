@@ -197,8 +197,10 @@ class ConfigStore:
     def delete_persisted_config(self) -> None:
         """Delete the persisted config file from disk and clear in-memory state."""
         self._config = None
-        if os.path.exists(self._config_file):
+        try:
             os.remove(self._config_file)
+        except FileNotFoundError:
+            pass
 
     # ── Persistence ─────────────────────────────────────────────────────
 
@@ -358,8 +360,8 @@ def is_sigv4_fes_available() -> bool:
     return _sigv4_fes_available is True
 
 
-def set_sigv4_region(region: str) -> None:
-    """Store the selected SigV4 region."""
+def set_sigv4_region(region: str | None) -> None:
+    """Store the selected SigV4 region, or None to clear it."""
     global _sigv4_region
     _sigv4_region = region
 

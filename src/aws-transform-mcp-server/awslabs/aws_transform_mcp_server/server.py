@@ -210,6 +210,7 @@ async def _probe_sigv4_transform_api() -> None:
         set_sigv4_fes_available(True)
         logger.info('Credential probe succeeded — auto-selected region {}', regions[0])
     else:
+        set_sigv4_region(None)
         set_sigv4_regions(regions)
         set_sigv4_fes_available(True)
         logger.info(

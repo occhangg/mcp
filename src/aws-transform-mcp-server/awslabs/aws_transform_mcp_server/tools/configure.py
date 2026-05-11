@@ -55,7 +55,7 @@ from awslabs.aws_transform_mcp_server.transform_api_client import (
 from loguru import logger
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
-from typing import Annotated, Any, Dict, List, Optional
+from typing import Annotated, Any, Dict, List, Literal, Optional
 
 
 async def _discover_profiles(
@@ -212,7 +212,7 @@ class ConfigureHandler:
         self,
         ctx: Context,
         authMode: Annotated[
-            str,
+            Literal['cookie', 'sso', 'reset'],
             Field(
                 description=(
                     'Authentication method. '

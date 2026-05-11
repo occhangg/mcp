@@ -61,7 +61,9 @@ class ProfileSelectionRequired(Exception):
 class AuthConflict(Exception):
     """Raised when configured auth fails but alternative auth methods are available."""
 
-    def __init__(self, failed_method: str, available_methods: list, original_error: str) -> None:  # noqa: D107
+    def __init__(  # noqa: D107
+        self, failed_method: str, available_methods: list[str], original_error: str
+    ) -> None:
         self.failed_method = failed_method
         self.available_methods = available_methods
         self.original_error = original_error
@@ -348,9 +350,12 @@ async def call_transform_api(
             if config_store.is_sigv4_fes_available():
                 available.append('sigv4')
             else:
-                session = AwsHelper.create_session()
-                if session.get_credentials() is not None:
-                    available.append('sigv4')
+                try:
+                    session = AwsHelper.create_session()
+                    if session.get_credentials() is not None:
+                        available.append('sigv4')
+                except Exception:
+                    pass
             if available:
                 raise AuthConflict(
                     failed_method=config.auth_mode,

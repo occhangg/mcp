@@ -284,7 +284,7 @@ class TestProbeSigv4Fes:
             await _probe_sigv4_transform_api()
 
         mock_set_available.assert_called_once_with(True)
-        mock_set_region.assert_not_called()
+        mock_set_region.assert_called_once_with(None)
         mock_set_regions.assert_called_once_with(['us-east-1', 'eu-central-1'])
 
     @pytest.mark.asyncio
